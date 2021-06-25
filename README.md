@@ -22,7 +22,7 @@ Pipeline.connect(myAlgoWallet)
 ```
 Send a transaction (returns transaction id):
 ```javascript
-Pipeline.send(address, amount, note, sendingAddress, myAlgowallet)
+Pipeline.send(address, amount, note, sendingAddress, myAlgoWallet)
     .then(data => {
         console.log(data);
     });
