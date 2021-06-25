@@ -57,6 +57,43 @@ export default class Pipeline {
         return JSON.stringify(data);
     }
 
+    static async sendASA(address, amt = 1, note = "Transaction note",sendingAddress,wallet,asaNumb) {
+         
+        const algodToken = {'X-API-Key': 'dmONugeHOX2DC8nDb3v8m6Bo9cI3WHbW6Ntt4QCZ'};
+        const algodServer = "https://mainnet-algorand.api.purestake.io/ps2";
+        const algodPort = "";
+        
+       
+        const data = await (async () => {
+            try {
+                const algodClient = new algosdk.Algodv2(algodToken, algodServer, '');
+                const params = await algodClient.getTransactionParams().do();
+
+                const txn = {
+                    ...params,
+                    type: 'axfer',
+                    assetIndex: asaNumb,
+                    from: sendingAddress,
+                    to: address,
+                    amount: amt,
+                    note: new Uint8Array(Buffer.from(note)),
+                };
+
+                const signedTxn = await wallet.signTransaction(txn);
+
+                await algodClient.sendRawTransaction(signedTxn.blob).do();
+
+                return signedTxn.txID;
+
+            }
+            catch (err) {
+                console.error(err);
+            }
+        })();
+
+        return JSON.stringify(data);
+    }
+
 }
 
 /*
@@ -70,7 +107,7 @@ Pipeline.connect(myAlgoWallet)
         console.log(data);
     });
 
-Pipeline.send(address, amount, note, sendingAddress, myAlgoWallet)
+Pipeline.send(address, amount, note, sendingAddress, myAlgowallet)
     .then(data => {
         console.log(data);
     });
