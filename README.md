@@ -27,3 +27,9 @@ Pipeline.send(address, amount, note, sendingAddress, myAlgoWallet)
         console.log(data);
     });
 ```
+#### Arguments 
+1. address (string)
+2. amount (in microalgos, integer)
+3. note (string)
+4. sendingAddress (string)
+5. myAlgoWallet (instance of Pipeline.init)
