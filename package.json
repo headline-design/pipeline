@@ -1,0 +1,21 @@
+{
+  "name": "@pipeline-ui-2/pipeline",
+  "version": "1.0.9",
+  "description": "Class to send transactions to Algorand network with MyAlgo Connect",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "keywords": [
+    "Algorand",
+    "Blockchain",
+    "JavaScript",
+    "Class"
+  ],
+  "author": "Headline",
+  "license": "MIT",
+  "dependencies": {
+    "@randlabs/myalgo-connect": "^1.0.1",
+    "algosdk": "^1.10.0"
+  }
+}
