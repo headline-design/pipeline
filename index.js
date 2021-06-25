@@ -70,7 +70,7 @@ Pipeline.connect(myAlgoWallet)
         console.log(data);
     });
 
-Pipeline.send(address, amount, note, sendingAddress, myAlgowallet)
+Pipeline.send(address, amount, note, sendingAddress, myAlgoWallet)
     .then(data => {
         console.log(data);
     });
