@@ -22,14 +22,15 @@ Pipeline.connect(myAlgoWallet)
 ```
 Send a transaction (returns transaction id):
 ```javascript
-Pipeline.send(address, amount, note, sendingAddress, myAlgoWallet)
+send(address, amt, myNote, sendingAddress, wallet, index = 0)
     .then(data => {
         console.log(data);
     });
 ```
 #### Pipeline.send Arguments 
 1. address (string)
-2. amount (in microalgos, integer)
-3. note (string)
+2. amt (amount in microalgos, integer)
+3. myNote (note, string)
 4. sendingAddress (string)
-5. myAlgoWallet (instance of Pipeline.init)
+5. wallet (instance of Pipeline.init)
+6. index (0 = Algorand, otherwise asset index number, integer)
