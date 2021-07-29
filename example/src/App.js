@@ -10,7 +10,7 @@ const myAlgoWallet = Pipeline.init();
 //amount in micro Algos
 const amount = 1;
 
-const note = "",
+const note = "";
 
 //0 = Algorand, otherwise index number of asset
 const index = 0;
