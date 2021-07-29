@@ -26,7 +26,7 @@ class App extends Component {
     }
   }
 
-  fetchBalance(context, returnTo) {
+  fetchBalance = (context, returnTo) => {
     Pipeline.balance(this.state.myAddress).then(
       data => {
         const object = {};
@@ -36,7 +36,7 @@ class App extends Component {
     );
   }
   
-  handleConnect(context, returnTo) {
+  handleConnect = (context, returnTo) => {
     Pipeline.connect(myAlgoWallet).then(
       data => {
         const object = {};
@@ -46,7 +46,7 @@ class App extends Component {
     );
   }
   
-  handleSend(context, returnTo) {
+  handleSend = (context, returnTo) => {
     Pipeline.send(recipient, amount, note, address, myAlgowallet, index).then(
       data => {
         const object = {};
