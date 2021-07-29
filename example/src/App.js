@@ -26,32 +26,26 @@ class App extends Component {
     }
   }
 
-  fetchBalance = (context, returnTo) => {
+  fetchBalance = () => {
     Pipeline.balance(this.state.myAddress).then(
       data => {
-        const object = {};
-        object[returnTo] = data;
-        context.setState(object);
+      this.setState({balance: data});
       }
     );
   }
   
-  handleConnect = (context, returnTo) => {
+  handleConnect = () => {
     Pipeline.connect(myAlgoWallet).then(
       data => {
-        const object = {};
-        object[returnTo] = data;
-        context.setState(object);
+        this.setState({myAddress: data});
       }
     );
   }
   
-  handleSend = (context, returnTo) => {
-    Pipeline.send(recipient, amount, note, address, myAlgowallet, index).then(
+  handleSend = () => {
+    Pipeline.send(recipient, amount, note, this.state.myAddress, myAlgoWallet, index).then(
       data => {
-        const object = {};
-        object[returnTo] = data;
-        context.setState(object);
+        this.setState({txID: data});
       }
     );
   }
@@ -60,11 +54,11 @@ class App extends Component {
     return (
     <div>
       <h1>Edit the code to make things happen!</h1>
-      <button onClick={this.handleConnect(this, "myAddress")}>Click to check balance</button><br></br>
-      <button onClick={this.fetchBalance(this, "balance")}>Click to check balance</button><br></br>
-      <button onClick={this.handleSend(this, "txID")}>Click to check balance</button><br></br>
-      <p>{"Connected Address: " + this.state.address}</p><br></br>
-      <p>{"Balance: " + this.state.balance + "Micro Algos"}</p><br></br>
+      <button onClick={this.handleConnect}>Click to Connect</button><br></br>
+      <button onClick={this.handleSend}>Click to Send Transaction</button><br></br>
+      <button onClick={this.fetchBalance}>Click to check balance</button><br></br>
+      <p>{"Connected Address: " + this.state.myAddress}</p><br></br>
+      <p>{"Balance: " + this.state.balance + " Micro Algos"}</p><br></br>
       <p>{"Transaction ID: " + this.state.txID}</p><br></br>
       </div>
       );
