@@ -60,9 +60,9 @@ class App extends Component {
     return (
     <div>
       <h1>Edit the code to make things happen!</h1>
-      <button onClick={handleConnect(this, "myAddress")}>Click to check balance</button><br></br>
-      <button onClick={fetchBalance(this, "balance")}>Click to check balance</button><br></br>
-      <button onClick={handleSend(this, "txID")}>Click to check balance</button><br></br>
+      <button onClick={this.handleConnect(this, "myAddress")}>Click to check balance</button><br></br>
+      <button onClick={this.fetchBalance(this, "balance")}>Click to check balance</button><br></br>
+      <button onClick={this.handleSend(this, "txID")}>Click to check balance</button><br></br>
       <p>{"Connected Address: " + this.state.address}</p><br></br>
       <p>{"Balance: " + this.state.balance + "Micro Algos"}</p><br></br>
       <p>{"Transaction ID: " + this.state.txID}</p><br></br>
