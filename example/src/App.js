@@ -14,11 +14,17 @@ const note = "";
 //0 = Algorand, otherwise index number of asset
 const index = 0;
 
+//set to false to switch to TestNet
+Pipeline.main = false;
+
+var mynet = (Pipeline.main) ? "MainNet" : "TestNet";
+
 class App extends Component {
 
   constructor(props){
     super(props)
     this.state = {
+      net: mynet,
       txID: "",
       myAddress: "",
       balance: 0
@@ -53,6 +59,7 @@ class App extends Component {
     return (
     <div>
       <h1>Edit the code to make things happen!</h1>
+      <h2>{this.state.net}</h2>
       <button onClick={this.handleConnect}>Click to Connect</button><br></br>
       <button onClick={this.handleSend}>Click to Send Transaction</button><br></br>
       <button onClick={this.fetchBalance}>Click to check balance</button><br></br>
