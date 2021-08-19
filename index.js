@@ -27,9 +27,10 @@ export default class Pipeline {
       let data2 = await data.json()
       let data3 = JSON.stringify(data2.account.amount / 1000000) + ' Algos'
       this.myBalance = data3;
-      return data3
+      return data3;
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      return 0;
     }
   }
 
