@@ -5,7 +5,7 @@ import { formatJsonRpcRequest } from "@json-rpc-tools/utils";
 import { encode, decode } from "algo-msgpack-with-bigint";
 import base32 from 'hi-base32';
 
-export class Pipeline {
+export default class Pipeline {
 
     static init() {
         this.index = 0;
