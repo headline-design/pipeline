@@ -1,6 +1,6 @@
 {
   "name": "@pipeline-ui-2/pipeline",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "Class to send transactions to Algorand network with MyAlgo Connect",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,7 @@
     "@walletconnect/client": "^1.6.5",
     "algo-msgpack-with-bigint": "^2.1.1",
     "algorand-walletconnect-qrcode-modal": "^1.6.1",
-    "hi-base32": "^0.5.1"
+    "hi-base32": "^0.5.1",
+    "tslib": "2.3.1"
   }
 }
