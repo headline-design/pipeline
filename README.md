@@ -4,7 +4,6 @@ A work-in-progress JavaScript class to streamline the process of using MyAlgo Co
 
 ### Running the included example
 ```bash
-npm install
 cd example
 npm install
 npm run start
