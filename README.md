@@ -28,6 +28,14 @@ Pipeline.connect(myAlgoWallet)
         console.log(data);
     });
 ```
+Connect to AlgoSigner (returns first address in wallet):
+```javascript
+Pipeline.pipeConnector = "AlgoSigner";
+Pipeline.connect()
+    .then(data => {
+        console.log(data);
+    });
+```
 Send a transaction (returns transaction id):
 ```javascript
 send(address, amt, myNote, sendingAddress, wallet, index = 0)
