@@ -4,10 +4,10 @@ import QRCodeModal from "algorand-walletconnect-qrcode-modal";
 import { formatJsonRpcRequest } from "@json-rpc-tools/utils";
 import { encode, decode } from "algo-msgpack-with-bigint";
 import base32 from 'hi-base32';
+import { CachedKeyDecoder } from 'algo-msgpack-with-bigint/dist/CachedKeyDecoder';
 
 
 export default class Pipeline {
-
     static init() {
         this.EnableDeveloperAPI = false;
         this.indexer = "http://localhost:8980";
@@ -21,10 +21,8 @@ export default class Pipeline {
         this.address = "";
         this.txID = "";
         this.myBalance = 0;
-        this.connector = new WalletConnect({
-            bridge: "https://bridge.walletconnect.org", // Required
-            qrcodeModal: QRCodeModal,
-        });
+        
+
         return new MyAlgo();
     }
 
@@ -55,46 +53,66 @@ export default class Pipeline {
     }
 
     static async connect(wallet) {
-        if (this.pipeConnector === "myAlgoWallet") {
-            try {
-                const accounts = await wallet.connect()
-                let item1 = accounts[0]
-                item1 = item1['address']
-                this.address = item1;
-                return item1;
-            } catch (err) {
-                console.error(err)
-            }
-        }
+        this.address = "";
 
-        else {
-
-            this.connector.on("connect", (error, payload) => {
-                if (error) {
-                    throw error;
+        switch (this.pipeConnector) {
+            case "myAlgoWallet":
+                try {
+                    const accounts = await wallet.connect()
+                    let item1 = accounts[0]
+                    item1 = item1['address']
+                    this.address = item1;
+                    return item1;
+                } catch (err) {
+                    console.error(err)
                 }
-                this.address = payload.params[0].accounts[0];
-            }
-            );
-
-            this.connector.on("session_update", (error, payload) => {
-                alert(error + payload)
-                if (error) {
-                    throw error;
+                break;
+            case "WalletConnect":
+                this.connector = new WalletConnect({
+                    bridge: "https://bridge.walletconnect.org", // Required
+                    qrcodeModal: QRCodeModal,
+                });
+                this.connector.on("connect", (error, payload) => {
+                    if (error) {
+                        throw error;
+                    }
+                    this.address = payload.params[0].accounts[0];
                 }
-                // Get updated accounts 
+                );
 
-            });
+                this.connector.on("session_update", (error, payload) => {
+                    alert(error + payload)
+                    if (error) {
+                        throw error;
+                    }
+                    // Get updated accounts 
 
-            if (!this.connector.connected) {
+                });
 
-                await this.connector.createSession();
+                if (!this.connector.connected) {
 
-            }
-            else {
-                await this.connector.killSession();
-                await this.connector.createSession();
-            }
+                    await this.connector.createSession().then(data => {console.log(data)})
+
+                }
+                else {
+                    await this.connector.killSession();
+                    await this.connector.createSession();
+                }
+                break;
+            case "AlgoSigner":
+                if (typeof AlgoSigner !== 'undefined') {
+                    await AlgoSigner.connect()
+                    let data = await AlgoSigner.accounts({ ledger: (this.main === true) ? 'MainNet' : 'TestNet' })
+                    let SignerAdd = data[0].address
+                    this.address = SignerAdd;
+                    return SignerAdd
+
+                } else {
+                    alert('AlgoSigner is NOT installed.');
+                };
+                break;
+            default:
+                break;
         }
 
         const getAddress = new Promise((resolve, reject) => {
@@ -102,7 +120,6 @@ export default class Pipeline {
                 resolve(this.connector.accounts[0]);
             }, 10000);
         });
-
 
         const address = await getAddress;
         return address;
@@ -145,39 +162,57 @@ export default class Pipeline {
             prototxnb = encode(prototxnASA);
             txns[0] = prototxnb;
         }
-
-        console.log(prototxnb)
-        console.log(new TextDecoder().decode(prototxnb))
-        console.log(JSON.stringify(decode(prototxnb)))
-
+        /*
+                console.log(prototxnb)
+                console.log(new TextDecoder().decode(prototxnb))
+                console.log(JSON.stringify(decode(prototxnb)))
+        */
         // Sign transaction
         const txnsToSign = txns.map(txnb => {
             const encodedTxn = Buffer.from(txnb).toString("base64");
 
-            return {
-                txn: encodedTxn,
-                message: 'Description of transaction being signed',
-                // Note: if the transaction does not need to be signed (because it's part of an atomic group
-                // that will be signed by another party), specify an empty singers array like so:
-                // signers: [],
-            };
+            if (this.pipeConnetor === "WalletConnect") {
+                return {
+                    txn: encodedTxn,
+                    message: 'Description of transaction being signed',
+                    // Note: if the transaction does not need to be signed (because it's part of an atomic group
+                    // that will be signed by another party), specify an empty singers array like so:
+                    // signers: [],
+                };
+            }
+            else {
+                return { txn: encodedTxn }
+            }
         });
 
         const requestParams = [txnsToSign];
+        console.log(requestParams)
 
-        var request = formatJsonRpcRequest("algo_signTxn", requestParams);
+        if (this.pipeConnector === "WalletConnect") {
 
-        request.id = this.connector._handshakeId;
+            var request = formatJsonRpcRequest("algo_signTxn", requestParams);
 
-        console.log(request);
+            request.id = this.connector._handshakeId;
 
-        try {
-            const result = await this.connector.sendCustomRequest(request);
-            const signedPartialTxn = result[0]
-            const rawSignedTxn = Buffer.from(signedPartialTxn, "base64");
-            return new Uint8Array(rawSignedTxn);
+            console.log(request);
+
+            try {
+                const result = await this.connector.sendCustomRequest(request);
+                const signedPartialTxn = result[0]
+                const rawSignedTxn = Buffer.from(signedPartialTxn, "base64");
+                return new Uint8Array(rawSignedTxn);
+            }
+            catch (error) { console.log(error) }
         }
-        catch (error) { console.log(error) }
+        else {
+            try {
+                const result = await AlgoSigner.signTxn(requestParams)
+                const signedPartialTxn = result[0].blob
+                const rawSignedTxn = Buffer.from(signedPartialTxn, "base64");
+                return new Uint8Array(rawSignedTxn);
+            }
+            catch (error) { console.log(error) }
+        }
     }
 
     static async send(address, amt, myNote, _sendingAddress, wallet, index = 0) {
@@ -264,6 +299,9 @@ export default class Pipeline {
             }
             else {
                 signedTxn = await this.walletConnectSign(txn)
+                if(this.pipeConnector === "AlgoSigner"){
+                    console.log(signedTxn)
+                }
             }
 
             console.log(signedTxn)
@@ -290,6 +328,7 @@ export default class Pipeline {
                 })
 
             this.txID = transactionID
+            if (transactionID === undefined){transactionID = "Transaction failed"}
             return transactionID
         } catch (err) {
             console.error(err)
