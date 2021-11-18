@@ -1,6 +1,15 @@
 # Pipeline Algorand Connector
 A work-in-progress JavaScript class to streamline the process of using MyAlgo Connect to sign and send transactions to the Algorand network. 
 ## Usage
+
+### Running the included example
+```bash
+npm install
+cd example
+npm install
+npm run start
+```
+
 ### Install from npm:
 ```bash
 npm install @pipeline-ui-2/pipeline
