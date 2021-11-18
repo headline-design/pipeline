@@ -1,5 +1,5 @@
 # Pipeline Algorand Connector
-A work-in-progress JavaScript class to streamline the process of using MyAlgo Connect to sign and send transactions to the Algorand network. 
+A work-in-progress JavaScript class to streamline the process of using MyAlgo Connect, WalletConnect and AlgoSigner to sign and send transactions to the Algorand network. 
 ## Usage
 
 ### Running the included example
