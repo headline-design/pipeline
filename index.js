@@ -21,8 +21,6 @@ export default class Pipeline {
         this.address = "";
         this.txID = "";
         this.myBalance = 0;
-        
-
         return new MyAlgo();
     }
 
@@ -43,7 +41,7 @@ export default class Pipeline {
         try {
             let data = await fetch(url2)
             let data2 = await data.json()
-            let data3 = JSON.stringify(data2.account.amount / 1000000) + ' Algos'
+            let data3 = JSON.stringify(data2.account.amount / 1000000);
             this.myBalance = data3;
             return data3;
         } catch (error) {
@@ -115,13 +113,23 @@ export default class Pipeline {
                 break;
         }
 
-        const getAddress = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve(this.connector.accounts[0]);
-            }, 10000);
-        });
+        function waitForAddress() {
+            return new Promise(resolve => {
+              var start_time = Date.now();
+              function checkFlag() {
+                if (Pipeline.address !== "") {
+                  resolve(Pipeline.address);
+                } else if (Date.now() > start_time + 15000) {
+                  resolve("error occurred");
+                } else {
+                  window.setTimeout(checkFlag, 200); 
+                }
+              }
+              checkFlag();
+            });
+          }
 
-        const address = await getAddress;
+        const address = await waitForAddress();
         return address;
     }
 
