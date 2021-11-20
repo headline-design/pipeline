@@ -119,7 +119,7 @@ export default class Pipeline {
               function checkFlag() {
                 if (Pipeline.address !== "") {
                   resolve(Pipeline.address);
-                } else if (Date.now() > start_time + 15000) {
+                } else if (Date.now() > start_time + 60000) {
                   resolve("error occurred");
                 } else {
                   window.setTimeout(checkFlag, 200); 
