@@ -21,6 +21,10 @@ export default class Pipeline {
         this.address = "";
         this.txID = "";
         this.myBalance = 0;
+        this.connector = new WalletConnect({
+            bridge: "https://bridge.walletconnect.org", // Required
+            qrcodeModal: QRCodeModal,
+        });
         return new MyAlgo();
     }
 
@@ -66,10 +70,7 @@ export default class Pipeline {
                 }
                 break;
             case "WalletConnect":
-                this.connector = new WalletConnect({
-                    bridge: "https://bridge.walletconnect.org", // Required
-                    qrcodeModal: QRCodeModal,
-                });
+                
                 this.connector.on("connect", (error, payload) => {
                     if (error) {
                         throw error;
@@ -88,13 +89,10 @@ export default class Pipeline {
                 });
 
                 if (!this.connector.connected) {
-
                     await this.connector.createSession().then(data => {console.log(data)})
-
                 }
                 else {
-                    await this.connector.killSession();
-                    await this.connector.createSession();
+                   this.address = this.connector.accounts[0];
                 }
                 break;
             case "AlgoSigner":
