@@ -5,8 +5,10 @@ import { formatJsonRpcRequest } from "@json-rpc-tools/utils";
 import { encode, decode } from "algo-msgpack-with-bigint";
 import base32 from 'hi-base32';
 import { CachedKeyDecoder } from 'algo-msgpack-with-bigint/dist/CachedKeyDecoder';
+import createAsaTxn from './createAsaTxn.js'
+import algosdk from 'algosdk'
 
-
+//updated again
 export default class Pipeline {
     static init() {
         this.EnableDeveloperAPI = false;
@@ -25,6 +27,7 @@ export default class Pipeline {
             bridge: "https://bridge.walletconnect.org", // Required
             qrcodeModal: QRCodeModal,
         });
+        this.wallet = new MyAlgo();
         return new MyAlgo();
     }
 
@@ -70,7 +73,7 @@ export default class Pipeline {
                 }
                 break;
             case "WalletConnect":
-                
+
                 this.connector.on("connect", (error, payload) => {
                     if (error) {
                         throw error;
@@ -89,10 +92,10 @@ export default class Pipeline {
                 });
 
                 if (!this.connector.connected) {
-                    await this.connector.createSession().then(data => {console.log(data)})
+                    await this.connector.createSession().then(data => { console.log(data) })
                 }
                 else {
-                   this.address = this.connector.accounts[0];
+                    this.address = this.connector.accounts[0];
                 }
                 break;
             case "AlgoSigner":
@@ -113,67 +116,72 @@ export default class Pipeline {
 
         function waitForAddress() {
             return new Promise(resolve => {
-              var start_time = Date.now();
-              function checkFlag() {
-                if (Pipeline.address !== "") {
-                  resolve(Pipeline.address);
-                } else if (Date.now() > start_time + 60000) {
-                  resolve("error occurred");
-                } else {
-                  window.setTimeout(checkFlag, 200); 
+                var start_time = Date.now();
+                function checkFlag() {
+                    if (Pipeline.address !== "") {
+                        resolve(Pipeline.address);
+                    } else if (Date.now() > start_time + 60000) {
+                        resolve("error occurred");
+                    } else {
+                        window.setTimeout(checkFlag, 200);
+                    }
                 }
-              }
-              checkFlag();
+                checkFlag();
             });
-          }
+        }
 
         const address = await waitForAddress();
         return address;
     }
 
-    static async walletConnectSign(mytxnb) {
+    static async sign(mytxnb) {
 
-        let prototxn = {
-            "amt": mytxnb.amount,
-            "fee": 1000,
-            "fv": mytxnb.lastRound - 1000,
-            "gen": mytxnb.genesisID,
-            "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
-            "lv": mytxnb.lastRound,
-            "note": mytxnb.note,
-            "rcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
-            "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
-            "type": "pay"
-        }
-
-        let prototxnASA = {};
-        let prototxnb = encode(prototxn);
-        let txns = [];
-        txns[0] = prototxnb;
-
-        if (this.index !== 0) {
-            prototxnASA = {
-                "aamt": mytxnb.amount,
-                "arcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
-                "fee": 1000,
-                "fv": mytxnb.lastRound - 1000,
-                "gen": mytxnb.genesisID,
-                "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
-                "lv": mytxnb.lastRound,
-                "note": mytxnb.note,
-                "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
-                "type": "axfer",
-                "xaid": parseInt(mytxnb.assetIndex)
-            }
-            prototxnb = encode(prototxnASA);
-            txns[0] = prototxnb;
-        }
+        let txns = []
+        txns[0] = mytxnb
         /*
-                console.log(prototxnb)
-                console.log(new TextDecoder().decode(prototxnb))
-                console.log(JSON.stringify(decode(prototxnb)))
-        */
+                let prototxn = {
+                    "amt": mytxnb.amount,
+                    "fee": 1000,
+                    "fv": mytxnb.lastRound - 1000,
+                    "gen": mytxnb.genesisID,
+                    "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
+                    "lv": mytxnb.lastRound,
+                    "note": mytxnb.note,
+                    "rcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
+                    "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
+                    "type": "pay"
+                }
+        
+                let prototxnASA = {};
+                let prototxnb = encode(prototxn);
+                let txns = [];
+                txns[0] = prototxnb;
+        
+                if (this.index !== 0) {
+                    prototxnASA = {
+                        "aamt": mytxnb.amount,
+                        "arcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
+                        "fee": 1000,
+                        "fv": mytxnb.lastRound - 1000,
+                        "gen": mytxnb.genesisID,
+                        "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
+                        "lv": mytxnb.lastRound,
+                        "note": mytxnb.note,
+                        "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
+                        "type": "axfer",
+                        "xaid": parseInt(mytxnb.assetIndex)
+                    }
+                    prototxnb = encode(prototxnASA);
+                    txns[0] = prototxnb;
+                }
+                
+                        console.log(prototxnb)
+                        console.log(new TextDecoder().decode(prototxnb))
+                        console.log(JSON.stringify(decode(prototxnb)))
+                */
         // Sign transaction
+
+
         const txnsToSign = txns.map(txnb => {
             const encodedTxn = Buffer.from(txnb).toString("base64");
 
@@ -260,7 +268,7 @@ export default class Pipeline {
                         'X-Algo-API-Token': this.token,
                     }
                 })).json()
-                console.log("Params: " + JSON.stringify(params))
+                //console.log("Params: " + JSON.stringify(params))
             }
 
 
@@ -274,40 +282,42 @@ export default class Pipeline {
                 type: 'pay',
                 flatFee: true,
                 fee: 1000,
-                firstRound: params['last-round'],
-                lastRound: params['last-round'] + 1000,
+                firstRound: parseInt(params['last-round']),
+                lastRound: parseInt(params['last-round'] + 1000),
+            }
+
+            if (this.main == false) {
+                txn.genesisId = 'testnet-v1.0';
+                txn.genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
+            }
+
+            if (this.EnableDeveloperAPI === true) {
+                txn.genesisId = this.devGenId;
+                txn.genesisHash = this.devGenHash;
             }
 
             if (index !== 0) {
                 this.index = index;
                 txn.type = 'axfer'
                 txn.assetIndex = parseInt(index)
-
+                txn = algosdk.makeAssetTransferTxn(txn.from, txn.to, txn.fee, txn.amount, undefined, txn.firstRound, txn.lastRound, txn.note, txn.genesisHash, txn.genesisID, txn.assetIndex, undefined)
+            }
+            else {
+                txn = algosdk.makePaymentTxn(txn.from, txn.to, txn.fee, txn.amount, undefined, txn.firstRound, txn.lastRound, txn.note, txn.genesisHash, txn.genesisID, undefined)
             }
 
-            if (this.main == false) {
-                txn.genesisID = 'testnet-v1.0';
-                txn.genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-            }
-
-            if (this.EnableDeveloperAPI === true) {
-                txn.genesisID = this.devGenId;
-                txn.genesisHash = this.devGenHash;
-            }
+            txn.fee = 1000
 
             console.log(txn);
 
             let signedTxn = {};
 
             if (this.pipeConnector === "myAlgoWallet") {
-                signedTxn = await wallet.signTransaction(txn)
+                signedTxn = await wallet.signTransaction(txn.toByte())
                 signedTxn = signedTxn.blob;
             }
             else {
-                signedTxn = await this.walletConnectSign(txn)
-                if(this.pipeConnector === "AlgoSigner"){
-                    console.log(signedTxn)
-                }
+                signedTxn = await this.sign(txn.toByte())
             }
 
             console.log(signedTxn)
@@ -334,7 +344,102 @@ export default class Pipeline {
                 })
 
             this.txID = transactionID
-            if (transactionID === undefined){transactionID = "Transaction failed"}
+            if (transactionID === undefined) { transactionID = "Transaction failed" }
+            return transactionID
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    static async createAsa(asaObject = {}) {
+
+        let txn = {}
+
+        let paramServer = 'https://'
+        let transServer = 'https://'
+
+        if (this.main == true) {
+            paramServer = paramServer + 'algoexplorerapi.io/v2/transactions/params/'
+            transServer = transServer + 'algoexplorerapi.io/v2/transactions/'
+        }
+        else {
+            paramServer = paramServer + "testnet.algoexplorerapi.io/v2/transactions/params/"
+            transServer = transServer + "testnet.algoexplorerapi.io/v2/transactions/"
+        }
+
+        if (this.EnableDeveloperAPI === true) {
+            paramServer = this.algod + "/v2/transactions/params/";
+            transServer = this.algod + "/v2/transactions/";
+        }
+
+        let myNote = asaObject.note || "New Asa"
+
+        var buf = new Array(myNote.length)
+        var encodedNote = new Uint8Array(buf)
+        for (var i = 0, strLen = myNote.length; i < strLen; i++) {
+            encodedNote[i] = myNote.charCodeAt(i)
+        }
+
+        asaObject.note = encodedNote
+
+        console.log('My encoded note: ' + encodedNote)
+
+        let params = {};
+        if (this.EnableDeveloperAPI === false) {
+            params = await (await fetch(paramServer)).json()
+        }
+        else {
+            params = await (await fetch(paramServer, {
+                method: "GET",
+                headers: {
+                    'X-Algo-API-Token': this.token,
+                }
+            })).json()
+        }
+
+        txn = createAsaTxn(params, asaObject)
+
+        txn.fee = 1000
+
+        console.log(txn);
+
+        let signedTxn = {};
+
+        if (this.pipeConnector === "myAlgoWallet") {
+            signedTxn = await this.wallet.signTransaction(txn.toByte())
+            signedTxn = signedTxn.blob;
+        }
+        else {
+            signedTxn = await this.sign(txn.toByte())
+        }
+
+        console.log(signedTxn)
+
+        try {
+
+            let requestHeaders = { 'Content-Type': 'application/x-binary' };
+
+            if (this.EnableDeveloperAPI === true) {
+                requestHeaders = {
+                    'X-Algo-API-Token': this.token
+                }
+            }
+
+            let transactionID = await fetch(transServer, {
+                method: 'POST',
+                headers: requestHeaders,
+                body: signedTxn
+            })
+                .then(response => response.json())
+                .then(data => {
+                    return data.txId
+                })
+                .catch(error => {
+                    console.error('Error:', error)
+                })
+
+            this.txID = transactionID
+            if (transactionID === undefined) { transactionID = "Transaction failed" }
             return transactionID
         } catch (err) {
             console.error(err)
