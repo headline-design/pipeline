@@ -20,7 +20,7 @@ export default function createAsaTxn(params,args={}){
 
       console.log("Preparing create ASA transaction...")
 
-      txn = algosdk.makeAssetCreateTxn(addr, 1000, params["last-round"],params["last-round"] + 1000, note,params["genesis-hash"],params["genesis-id"],
+      txn = algosdk.makeAssetCreateTxn(addr, 1000, parseInt(params.firstRound),parseInt(params.lastRound), note,params.genesisHash,params.genesisID,
         totalIssuance, decimals, defaultFrozen, manager, reserve, freeze,
         clawback, unitName, assetName, assetURL, assetMetadataHash, undefined);
 

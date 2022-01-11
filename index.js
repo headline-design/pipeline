@@ -6,9 +6,11 @@ import { encode, decode } from "algo-msgpack-with-bigint";
 import base32 from 'hi-base32';
 import { CachedKeyDecoder } from 'algo-msgpack-with-bigint/dist/CachedKeyDecoder';
 import createAsaTxn from './createAsaTxn.js'
+import { getAppIndex, waitForConfirmation, u8array,readGlobalState} from './teal_utils.js';
 import algosdk from 'algosdk'
+import { configIndexer, configClient, sendTxns } from './utils.js';
 
-//updated again
+//Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
 export default class Pipeline {
     static init() {
         this.EnableDeveloperAPI = false;
@@ -19,6 +21,7 @@ export default class Pipeline {
         this.devGenId = "devnet-v1.0"
         this.index = 0;
         this.pipeConnector = "myAlgoWallet";
+        this.chainId = 0
         this.main = true;
         this.address = "";
         this.txID = "";
@@ -27,22 +30,14 @@ export default class Pipeline {
             bridge: "https://bridge.walletconnect.org", // Required
             qrcodeModal: QRCodeModal,
         });
+
         this.wallet = new MyAlgo();
         return new MyAlgo();
     }
 
     static async balance(address) {
 
-        let indexerURL = 'https://'
-
-        if (this.main == true) {
-            indexerURL = indexerURL + 'algoexplorerapi.io/idx2/v2/accounts/'
-        }
-        else {
-            indexerURL = indexerURL + "testnet.algoexplorerapi.io/idx2/v2/accounts/"
-        }
-
-        if (this.EnableDeveloperAPI === true) { indexerURL = this.indexer + "/v2/accounts/" }
+        let indexerURL = configIndexer(this.main, this.EnableDeveloperAPI)
 
         let url2 = indexerURL + address
         try {
@@ -78,7 +73,9 @@ export default class Pipeline {
                     if (error) {
                         throw error;
                     }
+                    console.log(payload)
                     this.address = payload.params[0].accounts[0];
+                    this.chainId = payload.params[0].chainId
                 }
                 );
 
@@ -87,7 +84,8 @@ export default class Pipeline {
                     if (error) {
                         throw error;
                     }
-                    // Get updated accounts 
+                    // Get updated accounts
+                    this.chainId = payload.params[0].chainId
 
                 });
 
@@ -134,120 +132,148 @@ export default class Pipeline {
         return address;
     }
 
-    static async sign(mytxnb) {
+    static async sign(mytxnb, group = false) {
 
-        let txns = []
-        txns[0] = mytxnb
-        /*
-                let prototxn = {
-                    "amt": mytxnb.amount,
-                    "fee": 1000,
-                    "fv": mytxnb.lastRound - 1000,
-                    "gen": mytxnb.genesisID,
-                    "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
-                    "lv": mytxnb.lastRound,
-                    "note": mytxnb.note,
-                    "rcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
-                    "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
-                    "type": "pay"
-                }
-        
-                let prototxnASA = {};
-                let prototxnb = encode(prototxn);
-                let txns = [];
-                txns[0] = prototxnb;
-        
-                if (this.index !== 0) {
-                    prototxnASA = {
-                        "aamt": mytxnb.amount,
-                        "arcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
+        console.log(mytxnb)
+        let signedTxn = ""
+
+        if (this.pipeConnector === "myAlgoWallet") {
+            if (!group) {
+                signedTxn = await this.wallet.signTransaction(mytxnb.toByte())
+                signedTxn = signedTxn.blob;
+                return signedTxn
+
+            }
+            else {
+                signedTxn = await this.wallet.signTransaction(mytxnb.map(txn => txn.toByte()))
+                return [signedTxn[0].blob,signedTxn[1].blob]
+            }
+        }
+        else {
+
+            let txns = []
+            if (!group) {
+                txns[0] = mytxnb
+            }
+            else {
+                txns[0] = mytxnb[0]
+                txns[1] = mytxnb[1]
+            }
+
+            console.log("Unencoded txns:")
+            console.log(txns)
+
+            /*
+                    let prototxn = {
+                        "amt": mytxnb.amount,
                         "fee": 1000,
                         "fv": mytxnb.lastRound - 1000,
                         "gen": mytxnb.genesisID,
                         "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
                         "lv": mytxnb.lastRound,
                         "note": mytxnb.note,
+                        "rcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
                         "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
-                        "type": "axfer",
-                        "xaid": parseInt(mytxnb.assetIndex)
+                        "type": "pay"
                     }
-                    prototxnb = encode(prototxnASA);
+            
+                    let prototxnASA = {};
+                    let prototxnb = encode(prototxn);
+                    let txns = [];
                     txns[0] = prototxnb;
+            
+                    if (this.index !== 0) {
+                        prototxnASA = {
+                            "aamt": mytxnb.amount,
+                            "arcv": new Uint8Array(base32.decode.asBytes(mytxnb.to).slice(0, 32)),
+                            "fee": 1000,
+                            "fv": mytxnb.lastRound - 1000,
+                            "gen": mytxnb.genesisID,
+                            "gh": new Uint8Array(Buffer.from(mytxnb.genesisHash, 'base64')),
+                            "lv": mytxnb.lastRound,
+                            "note": mytxnb.note,
+                            "snd": new Uint8Array(base32.decode.asBytes(this.address).slice(0, 32)),
+                            "type": "axfer",
+                            "xaid": parseInt(mytxnb.assetIndex)
+                        }
+                        prototxnb = encode(prototxnASA);
+                        txns[0] = prototxnb;
+                    }
+                    
+                            console.log(prototxnb)
+                            console.log(new TextDecoder().decode(prototxnb))
+                            console.log(JSON.stringify(decode(prototxnb)))
+                    */
+            // Sign transaction
+
+            let txnsToSign = txns.map(txnb => {
+
+                let packed = algosdk.encodeUnsignedTransaction(txnb)
+                let encodedTxn = Buffer.from(packed).toString("base64")
+
+                if (this.pipeConnector === "WalletConnect") {
+                    return {
+                        txn: encodedTxn,
+                        message: "",
+                        // Note: if the transaction does not need to be signed (because it's part of an atomic group
+                        // that will be signed by another party), specify an empty singers array like so:
+                        // signers: [],
+                    };
                 }
-                
-                        console.log(prototxnb)
-                        console.log(new TextDecoder().decode(prototxnb))
-                        console.log(JSON.stringify(decode(prototxnb)))
-                */
-        // Sign transaction
+                else {
+                    return { txn: encodedTxn }
+                }
+            });
 
+            let requestParams = [txnsToSign]
+            console.log("TXNs to Sign:")
+            console.log(requestParams)
 
-        const txnsToSign = txns.map(txnb => {
-            const encodedTxn = Buffer.from(txnb).toString("base64");
+            if (this.pipeConnector === "WalletConnect") {
 
-            if (this.pipeConnetor === "WalletConnect") {
-                return {
-                    txn: encodedTxn,
-                    message: 'Description of transaction being signed',
-                    // Note: if the transaction does not need to be signed (because it's part of an atomic group
-                    // that will be signed by another party), specify an empty singers array like so:
-                    // signers: [],
-                };
+                let request = formatJsonRpcRequest("algo_signTxn", requestParams)
+        
+                //request.id = this.chainId
+
+                console.log(request);
+
+                try {
+                    let result = await this.connector.sendCustomRequest(request);
+
+                    let binarySignedTxs = await result.map((tx) => {return new Uint8Array(Buffer.from(tx, 'base64'))});
+                    return !group?binarySignedTxs[0]:binarySignedTxs
+                }
+                catch (error) { console.log(error) }
             }
             else {
-                return { txn: encodedTxn }
+                try {
+                    let result = await AlgoSigner.signTxn(requestParams)
+
+                    let binarySignedTxs = await result.map((tx) => {return new Uint8Array(Buffer.from(tx.blob, 'base64'))});
+                    return !group?binarySignedTxs[0]:binarySignedTxs
+                }
+                catch (error) { console.log(error) }
             }
-        });
-
-        const requestParams = [txnsToSign];
-        console.log(requestParams)
-
-        if (this.pipeConnector === "WalletConnect") {
-
-            var request = formatJsonRpcRequest("algo_signTxn", requestParams);
-
-            request.id = this.connector._handshakeId;
-
-            console.log(request);
-
-            try {
-                const result = await this.connector.sendCustomRequest(request);
-                const signedPartialTxn = result[0]
-                const rawSignedTxn = Buffer.from(signedPartialTxn, "base64");
-                return new Uint8Array(rawSignedTxn);
-            }
-            catch (error) { console.log(error) }
-        }
-        else {
-            try {
-                const result = await AlgoSigner.signTxn(requestParams)
-                const signedPartialTxn = result[0].blob
-                const rawSignedTxn = Buffer.from(signedPartialTxn, "base64");
-                return new Uint8Array(rawSignedTxn);
-            }
-            catch (error) { console.log(error) }
         }
     }
 
-    static async send(address, amt, myNote, _sendingAddress, wallet, index = 0) {
+    static makeAppCall(appId, appArgs, params) {
+        let id = parseInt(appId)
+        let converted = []
+        appArgs.forEach(arg => {
+            converted.push(
+                typeof arg === "number" ? algosdk.encodeUint64(arg) : u8array(arg)
+            )
+        })
+        appArgs = converted
 
-        let paramServer = 'https://'
-        let transServer = 'https://'
+        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs)
 
-        if (this.main == true) {
-            paramServer = paramServer + 'algoexplorerapi.io/v2/transactions/params/'
-            transServer = transServer + 'algoexplorerapi.io/v2/transactions/'
-        }
-        else {
-            paramServer = paramServer + "testnet.algoexplorerapi.io/v2/transactions/params/"
-            transServer = transServer + "testnet.algoexplorerapi.io/v2/transactions/"
-        }
+        return txn
 
-        if (this.EnableDeveloperAPI === true) {
-            paramServer = this.algod + "/v2/transactions/params/";
-            transServer = this.algod + "/v2/transactions/";
-        }
+    }
 
+    static makeTransfer(address, amt, myNote, index = 0, params = {}) {
         var buf = new Array(myNote.length)
         var encodedNote = new Uint8Array(buf)
         for (var i = 0, strLen = myNote.length; i < strLen; i++) {
@@ -256,92 +282,53 @@ export default class Pipeline {
 
         console.log('My encoded note: ' + encodedNote)
 
+        let txn = {
+            from: this.address,
+            to: address,
+            amount: parseInt(amt),
+            note: encodedNote,
+            genesisId: params.genesisID,
+            genesisHash: params.genesisHash,
+            type: 'pay',
+            flatFee: true,
+            fee: 1000,
+            firstRound: parseInt(params['last-round']),
+            lastRound: parseInt(params['last-round'] + 1000),
+        }
+
+        if (index !== 0) {
+            this.index = index;
+            txn.type = 'axfer'
+            txn.assetIndex = parseInt(index)
+
+            txn = algosdk.makeAssetTransferTxn(txn.from, txn.to, undefined, undefined,txn.fee, txn.amount, txn.firstRound, txn.lastRound, txn.note, txn.genesisHash, txn.genesisId, txn.assetIndex, undefined)
+        }
+        else {
+            txn = algosdk.makePaymentTxn(txn.from, txn.to, txn.fee, txn.amount, undefined, txn.firstRound, txn.lastRound, txn.note, txn.genesisHash, txn.genesisId, undefined)
+        }
+
+        txn.fee = 1000
+
+        console.log(txn);
+        return txn
+    }
+
+    static async send(address, amt, myNote, _sendingAddress, _wallet, index = 0) {
+
+        let client = await configClient(this.main, this.EnableDeveloperAPI)
+        let transServer = client.tranServer
+        let params = client.params
+
         try {
-            let params = {};
-            if (this.EnableDeveloperAPI === false) {
-                params = await (await fetch(paramServer)).json()
-            }
-            else {
-                params = await (await fetch(paramServer, {
-                    method: "GET",
-                    headers: {
-                        'X-Algo-API-Token': this.token,
-                    }
-                })).json()
-                //console.log("Params: " + JSON.stringify(params))
-            }
-
-
-            let txn = {
-                from: this.address,
-                to: address,
-                amount: parseInt(amt),
-                note: encodedNote,
-                genesisID: 'mainnet-v1.0',
-                genesisHash: 'wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=',
-                type: 'pay',
-                flatFee: true,
-                fee: 1000,
-                firstRound: parseInt(params['last-round']),
-                lastRound: parseInt(params['last-round'] + 1000),
-            }
-
-            if (this.main == false) {
-                txn.genesisId = 'testnet-v1.0';
-                txn.genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-            }
-
-            if (this.EnableDeveloperAPI === true) {
-                txn.genesisId = this.devGenId;
-                txn.genesisHash = this.devGenHash;
-            }
-
-            if (index !== 0) {
-                this.index = index;
-                txn.type = 'axfer'
-                txn.assetIndex = parseInt(index)
-                txn = algosdk.makeAssetTransferTxn(txn.from, txn.to, txn.fee, txn.amount, undefined, txn.firstRound, txn.lastRound, txn.note, txn.genesisHash, txn.genesisID, txn.assetIndex, undefined)
-            }
-            else {
-                txn = algosdk.makePaymentTxn(txn.from, txn.to, txn.fee, txn.amount, undefined, txn.firstRound, txn.lastRound, txn.note, txn.genesisHash, txn.genesisID, undefined)
-            }
-
-            txn.fee = 1000
-
-            console.log(txn);
+            let txn = this.makeTransfer(address, amt, myNote, index, params)
 
             let signedTxn = {};
 
-            if (this.pipeConnector === "myAlgoWallet") {
-                signedTxn = await wallet.signTransaction(txn.toByte())
-                signedTxn = signedTxn.blob;
-            }
-            else {
-                signedTxn = await this.sign(txn.toByte())
-            }
+            signedTxn = await this.sign(txn)
 
             console.log(signedTxn)
 
-            let requestHeaders = { 'Content-Type': 'application/x-binary' };
-
-            if (this.EnableDeveloperAPI === true) {
-                requestHeaders = {
-                    'X-Algo-API-Token': this.token
-                }
-            }
-
-            let transactionID = await fetch(transServer, {
-                method: 'POST',
-                headers: requestHeaders,
-                body: signedTxn
-            })
-                .then(response => response.json())
-                .then(data => {
-                    return data.txId
-                })
-                .catch(error => {
-                    console.error('Error:', error)
-                })
+            let transactionID = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
 
             this.txID = transactionID
             if (transactionID === undefined) { transactionID = "Transaction failed" }
@@ -355,47 +342,21 @@ export default class Pipeline {
 
         let txn = {}
 
-        let paramServer = 'https://'
-        let transServer = 'https://'
-
-        if (this.main == true) {
-            paramServer = paramServer + 'algoexplorerapi.io/v2/transactions/params/'
-            transServer = transServer + 'algoexplorerapi.io/v2/transactions/'
-        }
-        else {
-            paramServer = paramServer + "testnet.algoexplorerapi.io/v2/transactions/params/"
-            transServer = transServer + "testnet.algoexplorerapi.io/v2/transactions/"
-        }
-
-        if (this.EnableDeveloperAPI === true) {
-            paramServer = this.algod + "/v2/transactions/params/";
-            transServer = this.algod + "/v2/transactions/";
-        }
+        let client = await configClient(this.main, this.EnableDeveloperAPI)
+        let transServer = client.tranServer
+        let params = client.params
 
         let myNote = asaObject.note || "New Asa"
 
-        var buf = new Array(myNote.length)
-        var encodedNote = new Uint8Array(buf)
-        for (var i = 0, strLen = myNote.length; i < strLen; i++) {
+        let buf = new Array(myNote.length)
+        let encodedNote = new Uint8Array(buf)
+        for (let i = 0, strLen = myNote.length; i < strLen; i++) {
             encodedNote[i] = myNote.charCodeAt(i)
         }
 
         asaObject.note = encodedNote
 
         console.log('My encoded note: ' + encodedNote)
-
-        let params = {};
-        if (this.EnableDeveloperAPI === false) {
-            params = await (await fetch(paramServer)).json()
-        }
-        else {
-            params = await (await fetch(paramServer, {
-                method: "GET",
-                headers: {
-                    'X-Algo-API-Token': this.token,
-                }
-            })).json()
-        }
 
         txn = createAsaTxn(params, asaObject)
 
@@ -405,45 +366,269 @@ export default class Pipeline {
 
         let signedTxn = {};
 
-        if (this.pipeConnector === "myAlgoWallet") {
-            signedTxn = await this.wallet.signTransaction(txn.toByte())
-            signedTxn = signedTxn.blob;
-        }
-        else {
-            signedTxn = await this.sign(txn.toByte())
-        }
+        signedTxn = await this.sign(txn, false)
 
         console.log(signedTxn)
 
         try {
 
-            let requestHeaders = { 'Content-Type': 'application/x-binary' };
-
-            if (this.EnableDeveloperAPI === true) {
-                requestHeaders = {
-                    'X-Algo-API-Token': this.token
-                }
-            }
-
-            let transactionID = await fetch(transServer, {
-                method: 'POST',
-                headers: requestHeaders,
-                body: signedTxn
-            })
-                .then(response => response.json())
-                .then(data => {
-                    return data.txId
-                })
-                .catch(error => {
-                    console.error('Error:', error)
-                })
+            let transactionID = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
 
             this.txID = transactionID
-            if (transactionID === undefined) { transactionID = "Transaction failed" }
-            return transactionID
+            if (transactionID === undefined) {
+                return "Transaction failed"
+            }
+            else {
+
+                let algodClient = ""
+
+                if (!this.main) {
+                    algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+                }
+                else {
+                    algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+                }
+
+                let assetID = null;
+                await waitForConfirmation(algodClient, transactionID);
+                let ptx = await algodClient.pendingTransactionInformation(transactionID).do();
+                assetID = ptx["asset-index"];
+                return assetID
+            }
+
         } catch (err) {
             console.error(err)
         }
+    }
+
+    static async compileProgram(client, teal) {
+        let encoder = new TextEncoder();
+        let programBytes = encoder.encode(teal);
+        try {
+            let compileResponse = await client.compile(programBytes).do();
+            return compileResponse;
+        }
+        catch (error) { console.log(error) }
+    }
+
+    static async deployTeal(teal = "", teal2 = "", bytesInts = [], appArgs = [], onComplete = 0) {
+        if (teal !== "") {
+
+            let algodClient = ""
+
+            if (!this.main) {
+                algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+            }
+            else {
+                algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+            }
+
+            let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+            let transServer = clientb.tranServer
+
+            let compiled = ""
+
+            compiled = await this.compileProgram(algodClient, teal)
+            let compiledClear = await this.compileProgram(algodClient, teal2)
+
+            let params = await algodClient.getTransactionParams().do();
+
+            let converted = []
+            appArgs.forEach(arg => {
+                converted.push(
+                    typeof arg === "number" ? algosdk.encodeUint64(arg) : u8array(arg)
+                )
+            })
+            appArgs = converted
+
+            console.log(appArgs)
+
+            let lbytes = bytesInts[0]
+            let gbytes = bytesInts[1]
+            let lints = bytesInts[2]
+            let gints = bytesInts[3]
+
+            let txn = algosdk.makeApplicationCreateTxnFromObject({
+                suggestedParams: {
+                    ...params,
+                },
+                from: this.address,
+                numLocalByteSlices: lbytes,
+                numGlobalByteSlices: gbytes,
+                numLocalInts: lints,
+                numGlobalInts: gints,
+                appArgs: appArgs,
+                approvalProgram: new Uint8Array(Buffer.from(compiled.result, "base64")),
+                clearProgram: new Uint8Array(Buffer.from(compiledClear.result, "base64")),
+                onComplete: onComplete,
+            });
+
+            let signedTxn = await this.sign(txn)
+            console.log(signedTxn)
+            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI);
+            console.log(response)
+            let appId = await getAppIndex(response, this.main)
+            console.log(appId)
+            return appId
+        }
+        else {
+            console.log("Teal program or clear program empty")
+        }
+    }
+
+    static async optIn(appId = 0, appArgs = []) {
+        let algodClient = ""
+
+        if (!this.main) {
+            algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+        }
+        else {
+            algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+        }
+
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let transServer = clientb.tranServer
+
+        let params = await algodClient.getTransactionParams().do();
+
+        let converted = []
+        appArgs.forEach(arg => {
+            converted.push(
+                typeof arg === "number" ? algosdk.encodeUint64(arg) : u8array(arg)
+            )
+        })
+        appArgs = converted
+
+        let txn = ""
+
+        txn = algosdk.makeApplicationOptInTxnFromObject({
+            suggestedParams: {
+                ...params,
+            },
+            from: this.address,
+            appIndex: parseInt(appId),
+            appArgs: appArgs
+        });
+
+        let signedTxn = await this.sign(txn);
+        console.log(signedTxn)
+        let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
+        console.log(response)
+        return response
+    }
+
+    static async appCall(appId, appArgs) {
+
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let transServer = clientb.tranServer
+        let params = clientb.params
+
+        let txn = this.makeAppCall(appId, appArgs, params)
+
+        let signedTxn = await this.sign(txn);
+        console.log(signedTxn)
+        let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
+        console.log(response)
+
+        return response
+
+    }
+
+    static async getParams() {
+        let client = await configClient(this.main, this.EnableDeveloperAPI)
+        return client.params
+    }
+
+    static async deleteApp(appId = 0) {
+        let algodClient = ""
+
+        if (!this.main) {
+            algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+        }
+        else {
+            algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+        }
+        let params = await algodClient.getTransactionParams().do();
+
+        let txn = algosdk.makeApplicationDeleteTxnFromObject({
+            suggestedParams: {
+                ...params,
+            },
+            from: this.address,
+            appIndex: parseInt(appId),
+        });
+
+        let signedTxn = await this.sign(txn);
+
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let transServer = clientb.tranServer
+
+        try {
+            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
+            console.log(response)
+            return response
+        }
+        catch (error) { console.log(error) }
+    }
+
+    static async appCallWithTxn(appId = 0, appArgs = [],reciever = "", amount = 0, note = "", index = 0) {
+        let id = parseInt(appId)
+
+        let algodClient = ""
+
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let params = clientb.params
+
+        let txns = [
+            this.makeAppCall(id, appArgs, params),
+            this.makeTransfer(reciever, amount, note, index, params)
+        ]
+
+        txns = algosdk.assignGroupID(txns)
+
+        console.log(txns)
+
+        let signedTxn = await this.sign(txns, true)
+
+        console.log(signedTxn)
+
+        if (!this.main) {
+            algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+        }
+        else {
+            algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+        }
+        try {
+            let response = await algodClient.sendRawTransaction(signedTxn).do();
+            return response.txId
+        }
+        catch (error) { console.log(error) }
+    }
+
+
+    static async getAppCreator(appid) {
+        let data = undefined
+        let dataObj = undefined
+        let id = undefined
+
+        let url = ""
+
+        if (!this.main) {
+            url = "https://algoindexer.testnet.algoexplorerapi.io"
+        }
+        else {
+            url = "https://algoindexer.algoexplorerapi.io"
+        }
+
+        data = await fetch(url + '/v2/applications/' + parseInt(appid))
+        dataObj = await data.json()
+        id = await dataObj.application.params.creator
+        return id
+    }
+
+    static async readGlobalState(appId){
+        let data = await readGlobalState(this.main,appId)
+        return data
     }
 }
 
