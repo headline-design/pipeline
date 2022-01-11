@@ -1,0 +1,252 @@
+import Pipeline from '@pipeline-ui-2/pipeline';
+import algosdk from 'algosdk'
+
+const teal = "" // teal code goes here as string
+const teal2 = "" // teal clear code goes here as string
+
+const wallet = Pipeline.init()
+
+var custom = false
+
+var sender = ""
+
+Pipeline.connect(wallet).then(response => {
+    sender = response;
+    console.log(response)
+    //deployTeal()
+    //optIn(appid)
+    //vote("candidatea",appid)
+    //readGlobalState(appid).then(tally => {console.log(tally)})
+    //deleteApp(appid)
+    })
+    
+var net = "TestNet"
+
+function u8array(text) {
+  return Uint8Array.from(Array.from(text).map(letter => letter.charCodeAt(0)));
+}
+
+async function compileProgram(client, teal) {
+  let encoder = new TextEncoder();
+  let programBytes = encoder.encode(teal);
+  try {
+    let compileResponse = await client.compile(programBytes).do();
+    return compileResponse;
+  }
+  catch (error) { alert("invalid attempt to compile") }
+}
+
+async function deployTeal() {
+    if (teal !== "") {
+      window.reachLog = "Deploying TEAL..."
+      console.log("sender: " + sender)
+      let algodClient = ""
+
+      if (net === "TestNet") {
+        algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+      }
+      else {
+        algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+      }
+
+      let compiled = ""
+
+      compiled = await compileProgram(algodClient, teal)
+      let compiledClear = await compileProgram(algodClient, teal2)
+
+      console.log(compiled)
+      const params = await algodClient.getTransactionParams().do();
+
+      console.log(params)
+
+      let registrationStart = algosdk.encodeUint64(params.firstRound)
+      let registrationEnd = algosdk.encodeUint64(params.firstRound + 1000)
+      let voteStart = algosdk.encodeUint64(params.firstRound)
+      let voteEnd = algosdk.encodeUint64(params.firstRound + 10000)
+
+      let appArgs = custom ? document.getElementById("argInput").value : [registrationStart, registrationEnd, voteStart, voteEnd]
+
+      if (custom) {
+        let js = eval(appArgs)
+        let converted = []
+        js.forEach(arg => { converted.push(algosdk.encodeUint64(arg)) })
+        appArgs = converted
+      }
+
+      console.log(appArgs)
+
+      let lbytes = 1
+      let gbytes = 1
+      let lints = 0
+      let gints = 6
+
+      if (custom) {
+        lbytes = document.getElementById("lbyte").value
+        gbytes = document.getElementById("gbyte").value
+        lints = document.getElementById("lint").value
+        gints = document.getElementById("gint").value
+      }
+
+      let txn = algosdk.makeApplicationCreateTxnFromObject({
+        suggestedParams: {
+          ...params,
+        },
+        from: sender,
+        numLocalByteSlices: lbytes,
+        numGlobalByteSlices: gbytes,
+        numLocalInts: lints,
+        numGlobalInts: gints,
+        appArgs: appArgs,
+        approvalProgram: new Uint8Array(Buffer.from(compiled.result, "base64")),
+        clearProgram: new Uint8Array(Buffer.from(compiledClear.result, "base64")),
+        onComplete: 0,
+      });
+
+      let signedTxn = await wallet.signTransaction(txn.toByte());
+      console.log(signedTxn)
+      let response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+      window.reachLog += ("\nTXN ID: " + response.txId)
+      console.log(response)
+    }
+    else {
+      alert("Please select a TEAL contract to deploy!")
+    }
+  }
+
+  async function optIn(appid) {
+    let algodClient = ""
+
+    if (net === "TestNet") {
+      algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+    }
+    else {
+      algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+    }
+
+    const params = await algodClient.getTransactionParams().do();
+
+    let txn = algosdk.makeApplicationOptInTxnFromObject({
+      suggestedParams: {
+        ...params,
+      },
+      from: sender,
+      appIndex: parseInt(appid),
+    });
+
+    let signedTxn = await wallet.signTransaction(txn.toByte());
+    console.log(signedTxn)
+    let response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+    window.reachLog += ("\nTXN ID: " + response.txId)
+    console.log(response)
+  }
+
+  async function vote(candidate, appId){
+    let algodClient = ""
+
+    if (net === "TestNet") {
+      algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+    }
+    else {
+      algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+    }
+    let params = await algodClient.getTransactionParams().do();
+
+    let appArgs = [u8array("vote"), u8array(candidate)]
+
+    console.log("App Args: " + appArgs.toString())
+
+    let id = parseInt(appId)
+
+    let txn = algosdk.makeApplicationNoOpTxn(sender, params,id, appArgs)
+    this.setState({appid: id})
+
+    let signedTxn = await wallet.signTransaction(txn.toByte());
+    console.log(signedTxn)
+    let response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+    window.reachLog += ("\nTXN ID: " + response.txId)
+    console.log(response)
+
+    // display results
+    let transactionResponse = await algodClient.pendingTransactionInformation(response.txId).do();
+    console.log("Called app-id:", transactionResponse['txn']['txn']['apid'])
+    if (transactionResponse['global-state-delta'] !== undefined) {
+      console.log("Global State updated:", transactionResponse['global-state-delta']);
+    }
+    if (transactionResponse['local-state-delta'] !== undefined) {
+      console.log("Local State updated:", transactionResponse['local-state-delta']);
+    }
+
+  }
+
+  async function deleteApp(appId) {
+  window.reachLog += ("\n" + "Attempting to delete app...")
+  let algodClient = ""
+
+  if (net === "TestNet") {
+    algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+  }
+  else {
+    algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+  }
+  let params = await algodClient.getTransactionParams().do();
+
+  let txn = algosdk.makeApplicationDeleteTxnFromObject({
+    suggestedParams: {
+      ...params,
+    },
+    from: sender,
+    appIndex: parseInt(appId),
+  });
+
+  let signedTxn = await wallet.signTransaction(txn.toByte());
+  try {
+    let response = await algodClient.sendRawTransaction(signedTxn.blob).do();
+    console.log(response)
+    window.reachLog += ("\nTXN ID: " + response.txId)
+  }
+  catch (error) { console.log(error) }
+}
+
+async function readGlobalState(index){
+
+  let values = [0,0]
+
+  let client = ""
+  let url = ""
+
+  if (net === "TestNet") {
+    client = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
+    url = "https://api.testnet.algoexplorer.io"
+  }
+  else {
+    client = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
+    url = "https://api.algoexplorer.io"
+  }
+
+  let accountData = await fetch(url + '/v2/applications/' + index)
+  let accountJSON = await accountData.json()
+  let account = accountJSON.params.creator
+
+  let accountInfoResponse = await client.accountInformation(account).do();
+  for (let i = 0; i < accountInfoResponse['created-apps'].length; i++) { 
+      if (accountInfoResponse['created-apps'][i].id === index) {
+          console.log("Application's global state:");
+          for (let n = 0; n < accountInfoResponse['created-apps'][i]['params']['global-state'].length; n++) {
+              let slot = accountInfoResponse['created-apps'][i]['params']['global-state'][n]
+              console.log(slot)
+          switch (slot.key) {
+            case "Y2FuZGlkYXRlYQ==": values[0] = slot.value.uint;
+              break;
+            case "Y2FuZGlkYXRlYg==": values[1] = slot.value.uint;
+              break;
+            default:
+              break;
+          }
+        }
+      }
+  }
+  window.reachLog += ("\nVotes: " + values.toString())
+  return values
+}
+
+
