@@ -6,13 +6,14 @@ import { encode, decode } from "algo-msgpack-with-bigint";
 import base32 from 'hi-base32';
 import { CachedKeyDecoder } from 'algo-msgpack-with-bigint/dist/CachedKeyDecoder';
 import createAsaTxn from './createAsaTxn.js'
-import { getAppIndex, waitForConfirmation, u8array,readGlobalState} from './teal_utils.js';
+import { getAppIndex, getAsaIndex, u8array,readGlobalState} from './teal_utils.js';
 import algosdk from 'algosdk'
-import { configIndexer, configClient, sendTxns } from './utils.js';
+import { configIndexer, configClient, sendTxns, configAlgosdk} from './utils.js';
 
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
 export default class Pipeline {
     static init() {
+        this.alerts = true
         this.EnableDeveloperAPI = false;
         this.indexer = "http://localhost:8980";
         this.algod = "http://localhost:4001";
@@ -37,9 +38,9 @@ export default class Pipeline {
 
     static async balance(address) {
 
-        let indexerURL = configIndexer(this.main, this.EnableDeveloperAPI)
+        let indexerURL = configIndexer(this.main, this.EnableDeveloperAPI, this)
 
-        let url2 = indexerURL + address
+        let url2 = indexerURL +"/v2/accounts/" + address
         try {
             let data = await fetch(url2)
             let data2 = await data.json()
@@ -315,7 +316,7 @@ export default class Pipeline {
 
     static async send(address, amt, myNote, _sendingAddress, _wallet, index = 0) {
 
-        let client = await configClient(this.main, this.EnableDeveloperAPI)
+        let client = await configClient(this.main, this.EnableDeveloperAPI,this)
         let transServer = client.tranServer
         let params = client.params
 
@@ -328,7 +329,7 @@ export default class Pipeline {
 
             console.log(signedTxn)
 
-            let transactionID = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
+            let transactionID = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI,this.token,this.alerts)
 
             this.txID = transactionID
             if (transactionID === undefined) { transactionID = "Transaction failed" }
@@ -342,7 +343,7 @@ export default class Pipeline {
 
         let txn = {}
 
-        let client = await configClient(this.main, this.EnableDeveloperAPI)
+        let client = await configClient(this.main, this.EnableDeveloperAPI,this)
         let transServer = client.tranServer
         let params = client.params
 
@@ -372,27 +373,15 @@ export default class Pipeline {
 
         try {
 
-            let transactionID = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
+            let transactionID = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI,this.token,this.alerts)
 
             this.txID = transactionID
             if (transactionID === undefined) {
                 return "Transaction failed"
             }
             else {
-
-                let algodClient = ""
-
-                if (!this.main) {
-                    algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
-                }
-                else {
-                    algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
-                }
-
-                let assetID = null;
-                await waitForConfirmation(algodClient, transactionID);
-                let ptx = await algodClient.pendingTransactionInformation(transactionID).do();
-                assetID = ptx["asset-index"];
+                let assetID = await getAsaIndex(transactionID, this.main, this)
+                console.log(assetID)
                 return assetID
             }
 
@@ -414,14 +403,7 @@ export default class Pipeline {
     static async deployTeal(teal = "", teal2 = "", bytesInts = [], appArgs = [], onComplete = 0) {
         if (teal !== "") {
 
-            let algodClient = ""
-
-            if (!this.main) {
-                algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
-            }
-            else {
-                algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
-            }
+            let algodClient = configAlgosdk(this)
 
             let clientb = await configClient(this.main, this.EnableDeveloperAPI)
             let transServer = clientb.tranServer
@@ -463,13 +445,22 @@ export default class Pipeline {
                 onComplete: onComplete,
             });
 
-            let signedTxn = await this.sign(txn)
-            console.log(signedTxn)
-            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI);
-            console.log(response)
-            let appId = await getAppIndex(response, this.main)
-            console.log(appId)
-            return appId
+            try {
+                let signedTxn = await this.sign(txn)
+                console.log(signedTxn)
+                let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI, this.token,this.alerts);
+
+                console.log(response)
+                this.txID = response
+                let appId = await getAppIndex(response, this.main,this)
+                console.log(appId)
+
+                if (appId === undefined) {
+                    appId = "Transaction failed"
+                }
+                return appId
+            }
+            catch (error) { console.log(error) }
         }
         else {
             console.log("Teal program or clear program empty")
@@ -477,16 +468,10 @@ export default class Pipeline {
     }
 
     static async optIn(appId = 0, appArgs = []) {
-        let algodClient = ""
 
-        if (!this.main) {
-            algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
-        }
-        else {
-            algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
-        }
+        let algodClient = configAlgosdk(this)
 
-        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI,this)
         let transServer = clientb.tranServer
 
         let params = await algodClient.getTransactionParams().do();
@@ -510,11 +495,17 @@ export default class Pipeline {
             appArgs: appArgs
         });
 
-        let signedTxn = await this.sign(txn);
-        console.log(signedTxn)
-        let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
-        console.log(response)
-        return response
+        try {
+            let signedTxn = await this.sign(txn);
+            console.log(signedTxn)
+            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI, this.token, this.alerts)
+            console.log(response)
+            return response
+        }
+        catch (error) {
+            console.log(error)
+        }
+
     }
 
     static async appCall(appId, appArgs) {
@@ -525,29 +516,28 @@ export default class Pipeline {
 
         let txn = this.makeAppCall(appId, appArgs, params)
 
-        let signedTxn = await this.sign(txn);
-        console.log(signedTxn)
-        let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
-        console.log(response)
+        try {
+            let signedTxn = await this.sign(txn);
+            console.log(signedTxn)
+            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI, this.token, this.alerts)
+            console.log(response)
 
-        return response
+            return response
+        }
+        catch (error) {
+            console.log(error)
+        }
 
     }
 
     static async getParams() {
-        let client = await configClient(this.main, this.EnableDeveloperAPI)
+        let client = await configClient(this.main, this.EnableDeveloperAPI,this)
         return client.params
     }
 
     static async deleteApp(appId = 0) {
-        let algodClient = ""
 
-        if (!this.main) {
-            algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
-        }
-        else {
-            algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
-        }
+        let algodClient = configAlgosdk(this)
         let params = await algodClient.getTransactionParams().do();
 
         let txn = algosdk.makeApplicationDeleteTxnFromObject({
@@ -560,11 +550,11 @@ export default class Pipeline {
 
         let signedTxn = await this.sign(txn);
 
-        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI,this)
         let transServer = clientb.tranServer
 
         try {
-            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI)
+            let response = await sendTxns(signedTxn, transServer, this.EnableDeveloperAPI,this.token,this.alerts)
             console.log(response)
             return response
         }
@@ -574,9 +564,9 @@ export default class Pipeline {
     static async appCallWithTxn(appId = 0, appArgs = [],reciever = "", amount = 0, note = "", index = 0) {
         let id = parseInt(appId)
 
-        let algodClient = ""
+        let algodClient = configAlgosdk(this)
 
-        let clientb = await configClient(this.main, this.EnableDeveloperAPI)
+        let clientb = await configClient(this.main, this.EnableDeveloperAPI,this)
         let params = clientb.params
 
         let txns = [
@@ -592,15 +582,16 @@ export default class Pipeline {
 
         console.log(signedTxn)
 
-        if (!this.main) {
-            algodClient = new algosdk.Algodv2("", 'https://api.testnet.algoexplorer.io', '');
-        }
-        else {
-            algodClient = new algosdk.Algodv2("", 'https://algoexplorerapi.io', '');
-        }
         try {
             let response = await algodClient.sendRawTransaction(signedTxn).do();
-            return response.txId
+            if (response.txId !== undefined) {
+                return response.txId
+            }
+            else{
+                if (this.alerts){
+                    alert(response.message)
+                }
+            }
         }
         catch (error) { console.log(error) }
     }
@@ -613,12 +604,7 @@ export default class Pipeline {
 
         let url = ""
 
-        if (!this.main) {
-            url = "https://algoindexer.testnet.algoexplorerapi.io"
-        }
-        else {
-            url = "https://algoindexer.algoexplorerapi.io"
-        }
+        url = configIndexer(this.main, this.EnableDeveloperAPI, this)
 
         data = await fetch(url + '/v2/applications/' + parseInt(appid))
         dataObj = await data.json()
@@ -627,7 +613,7 @@ export default class Pipeline {
     }
 
     static async readGlobalState(appId){
-        let data = await readGlobalState(this.main,appId)
+        let data = await readGlobalState(this.main,appId,this)
         return data
     }
 }

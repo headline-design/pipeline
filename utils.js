@@ -1,20 +1,22 @@
-async function configClient(main, api) {
+import algosdk from 'algosdk'
 
-    let paramServer = 'https://'
-    let transServer = 'https://'
+async function configClient(main, api, ref) {
+
+    let paramServer = ''
+    let transServer = ''
 
     if (main) {
-        paramServer = paramServer + 'algoexplorerapi.io/v2/transactions/params/'
-        transServer = transServer + 'algoexplorerapi.io/v2/transactions/'
+        paramServer = 'https://node.algoexplorerapi.io/v2/transactions/params'
+        transServer = 'https://node.algoexplorerapi.io/v2/transactions'
     }
     else {
-        paramServer = paramServer + "testnet.algoexplorerapi.io/v2/transactions/params/"
-        transServer = transServer + "testnet.algoexplorerapi.io/v2/transactions/"
+        paramServer = "https://node.testnet.algoexplorerapi.io/v2/transactions/params"
+        transServer = "https://node.testnet.algoexplorerapi.io/v2/transactions"
     }
 
     if (api) {
-        paramServer = this.algod + "/v2/transactions/params/";
-        transServer = this.algod + "/v2/transactions/";
+        paramServer = ref.algod + "/v2/transactions/params";
+        transServer = ref.algod + "/v2/transactions";
     }
 
     let fetchObject = {}
@@ -22,7 +24,7 @@ async function configClient(main, api) {
         fetchObject = {
             method: "GET",
             headers: {
-                'X-Algo-API-Token': this.token,
+                'X-Algo-API-Token': ref.token,
             }
         }
     }
@@ -33,14 +35,14 @@ async function configClient(main, api) {
         params.genesisID = 'testnet-v1.0';
         params.genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
     }
-    else{
+    else {
         params.genesisID = 'mainnet-v1.0'
         params.genesisHash = 'wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8='
     }
 
     if (api) {
-        params.genesisID = this.devGenId;
-        params.genesisHash = this.devGenHash;
+        params.genesisID = ref.devGenId;
+        params.genesisHash = ref.devGenHash;
     }
 
     params.firstRound = params["last-round"]
@@ -53,22 +55,22 @@ async function configClient(main, api) {
     }
 }
 
-function configIndexer(main, api) {
-    let indexerURL = "https://"
+function configIndexer(main, api, ref) {
+    let indexerURL = ""
 
     if (main) {
-        indexerURL = indexerURL + 'algoexplorerapi.io/idx2/v2/accounts/'
+        indexerURL = "https://algoindexer.algoexplorerapi.io"
     }
     else {
-        indexerURL = indexerURL + "testnet.algoexplorerapi.io/idx2/v2/accounts/"
+        indexerURL = "https://algoindexer.testnet.algoexplorerapi.io"
     }
 
-    if (api) { indexerURL = this.indexer + "/v2/accounts/" }
+    if (api) { indexerURL = ref.indexer }
 
     return indexerURL
 }
 
-async function sendTxns(txns, transServer, api = false,token="") {
+async function sendTxns(txns, transServer, api = false, token = "", alerts) {
     let requestHeaders = { 'Content-Type': 'application/x-binary' };
 
     if (api) {
@@ -84,7 +86,17 @@ async function sendTxns(txns, transServer, api = false,token="") {
     })
         .then(response => response.json())
         .then(data => {
-            return data.txId
+            if (data.txId !== undefined) {
+                return data.txId
+            }
+            else {
+                if (data.message !== undefined) {
+                    if (alerts) {
+                        alert(data.message)
+                    }
+                    return undefined
+                }
+            }
         })
         .catch(error => {
             console.error('Error:', error)
@@ -94,4 +106,23 @@ async function sendTxns(txns, transServer, api = false,token="") {
 
 }
 
-export { configClient, configIndexer, sendTxns }
+function configAlgosdk(ref) {
+
+    let algodClient = ""
+
+    if (ref.EnableDeveloperAPI) {
+        algodClient = new algosdk.Algodv2("", ref.algod, ref.token);
+    }
+    else {
+        if (!ref.main) {
+            algodClient = new algosdk.Algodv2("", 'https://node.testnet.algoexplorerapi.io', '');
+        }
+        else {
+            algodClient = new algosdk.Algodv2("", 'https://node.algoexplorerapi.io', '');
+        }
+    }
+    return algodClient
+
+}
+
+export { configClient, configIndexer, sendTxns, configAlgosdk }

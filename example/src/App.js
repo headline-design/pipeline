@@ -4,8 +4,8 @@ import Pipeline from '@pipeline-ui-2/pipeline'; //change to import Pipeline from
 const asaData = {
   creator: "",
   note: "Hello",
-  amount: 2,
-  decimals: 0,
+  amount: 100000000,
+  decimals: 6,
   assetName: "AnotherNft",
   unitName: "NFTA"
 }
@@ -171,7 +171,7 @@ class App extends Component {
             keyIndex = i;
           }
         }
-        if (keyIndex != "") {
+        if (keyIndex !== "") {
           alert("Candidateb Votes: " + data[keyIndex].value.uint)
         }
         else {
