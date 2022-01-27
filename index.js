@@ -258,7 +258,7 @@ export default class Pipeline {
         }
     }
 
-    static makeAppCall(appId, appArgs, params) {
+    static makeAppCall(appId, appArgs, params,accounts) {
         let id = parseInt(appId)
         let converted = []
         appArgs.forEach(arg => {
@@ -268,7 +268,7 @@ export default class Pipeline {
         })
         appArgs = converted
 
-        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs)
+        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs,accounts)
 
         return txn
 
@@ -561,7 +561,7 @@ export default class Pipeline {
         catch (error) { console.log(error) }
     }
 
-    static async appCallWithTxn(appId = 0, appArgs = [],reciever = "", amount = 0, note = "", index = 0) {
+    static async appCallWithTxn(appId = 0, appArgs = [],reciever = "", amount = 0, note = "", index = 0, accounts = undefined) {
         let id = parseInt(appId)
 
         let algodClient = configAlgosdk(this)
@@ -570,7 +570,7 @@ export default class Pipeline {
         let params = clientb.params
 
         let txns = [
-            this.makeAppCall(id, appArgs, params),
+            this.makeAppCall(id, appArgs, params,accounts),
             this.makeTransfer(reciever, amount, note, index, params)
         ]
 
