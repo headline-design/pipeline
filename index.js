@@ -508,13 +508,13 @@ export default class Pipeline {
 
     }
 
-    static async appCall(appId, appArgs) {
+    static async appCall(appId, appArgs,accounts = undefined) {
 
         let clientb = await configClient(this.main, this.EnableDeveloperAPI)
         let transServer = clientb.tranServer
         let params = clientb.params
 
-        let txn = this.makeAppCall(appId, appArgs, params)
+        let txn = this.makeAppCall(appId, appArgs, params,accounts)
 
         try {
             let signedTxn = await this.sign(txn);
