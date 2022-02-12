@@ -258,7 +258,7 @@ export default class Pipeline {
         }
     }
 
-    static makeAppCall(appId, appArgs, params,accounts) {
+    static makeAppCall(appId, appArgs, params,accounts,assets) {
         let id = parseInt(appId)
         let converted = []
         appArgs.forEach(arg => {
@@ -268,7 +268,7 @@ export default class Pipeline {
         })
         appArgs = converted
 
-        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs,accounts)
+        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs,accounts,undefined,assets)
 
         return txn
 
@@ -508,13 +508,13 @@ export default class Pipeline {
 
     }
 
-    static async appCall(appId, appArgs,accounts = undefined) {
+    static async appCall(appId, appArgs,accounts = undefined,assets = undefined) {
 
         let clientb = await configClient(this.main, this.EnableDeveloperAPI)
         let transServer = clientb.tranServer
         let params = clientb.params
 
-        let txn = this.makeAppCall(appId, appArgs, params,accounts)
+        let txn = this.makeAppCall(appId, appArgs, params,accounts, assets)
 
         try {
             let signedTxn = await this.sign(txn);
@@ -561,7 +561,7 @@ export default class Pipeline {
         catch (error) { console.log(error) }
     }
 
-    static async appCallWithTxn(appId = 0, appArgs = [],reciever = "", amount = 0, note = "", index = 0, accounts = undefined) {
+    static async appCallWithTxn(appId = 0, appArgs = [],reciever = "", amount = 0, note = "", index = 0, accounts = undefined, assets = undefined) {
         let id = parseInt(appId)
 
         let algodClient = configAlgosdk(this)
@@ -570,7 +570,7 @@ export default class Pipeline {
         let params = clientb.params
 
         let txns = [
-            this.makeAppCall(id, appArgs, params,accounts),
+            this.makeAppCall(id, appArgs, params,accounts, assets),
             this.makeTransfer(reciever, amount, note, index, params)
         ]
 
