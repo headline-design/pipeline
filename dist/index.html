@@ -1,0 +1,10 @@
+<button onclick="test()">TEST</button>
+<script src="index.js"></script>
+<script>
+const Pipeline = window.pipeline
+const wallet = Pipeline.init()
+function test(){Pipeline.connect(wallet).then(data => {console.log(data)})
+}
+
+
+</script>

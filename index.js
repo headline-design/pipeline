@@ -9,8 +9,11 @@ import createAsaTxn from './createAsaTxn.js'
 import { getAppIndex, getAsaIndex, u8array,readGlobalState} from './teal_utils.js';
 import algosdk from 'algosdk'
 import { configIndexer, configClient, sendTxns, configAlgosdk} from './utils.js';
+import 'regenerator-runtime'
 
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
+
+export {sendTxns}
 export default class Pipeline {
     static init() {
         this.alerts = true
@@ -617,6 +620,8 @@ export default class Pipeline {
         return data
     }
 }
+
+window.pipeline = Pipeline
 
 /* usage
 

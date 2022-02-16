@@ -9,7 +9,26 @@ npm install
 npm run start
 ```
 
-### Install from npm:
+### Use as <script>
+
+```html
+
+<button onclick="connect()">TEST</button>
+
+<script src="https://unpkg.com/@pipeline-ui-2/pipeline@1.3.4/dist/index.js"></script>
+
+<script>
+    const Pipeline = window.pipeline
+    const wallet = Pipeline.init()
+    function connect(){
+        Pipeline.connect(wallet).then(data => {
+            console.log(data)
+        })
+    }
+</script>
+```
+
+### Install via npm:
 ```bash
 npm install @pipeline-ui-2/pipeline
 ```

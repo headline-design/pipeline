@@ -4,10 +4,10 @@ import Pipeline from '@pipeline-ui-2/pipeline'; //change to import Pipeline from
 const asaData = {
   creator: "",
   note: "Hello",
-  amount: 100000000,
+  amount: 25000000000,
   decimals: 6,
-  assetName: "AnotherNft",
-  unitName: "NFTA"
+  assetName: "HDLb",
+  unitName: "HDLb"
 }
 
 //change recipient address before sending transaction
@@ -24,7 +24,7 @@ const note = "test note";
 const index = 0;
 
 //set to false to switch to TestNet
-Pipeline.main = true;
+Pipeline.main = false;
 
 var mynet = (Pipeline.main) ? "MainNet" : "TestNet";
 
