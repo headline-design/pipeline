@@ -154,7 +154,7 @@ export default class Pipeline {
                 signedTxn.forEach(item => {
                     txnsb.push(item.blob)
                 })
-                return [txnsb]
+                return txnsb
             }
         }
         else {
