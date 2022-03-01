@@ -150,7 +150,11 @@ export default class Pipeline {
             }
             else {
                 signedTxn = await this.wallet.signTransaction(mytxnb.map(txn => txn.toByte()))
-                return [signedTxn[0].blob,signedTxn[1].blob]
+                let txnsb = []
+                signedTxn.forEach(item => {
+                    txnsb.push(item.blob)
+                })
+                return [txnsb]
             }
         }
         else {
@@ -160,8 +164,7 @@ export default class Pipeline {
                 txns[0] = mytxnb
             }
             else {
-                txns[0] = mytxnb[0]
-                txns[1] = mytxnb[1]
+              txns = mytxnb
             }
 
             console.log("Unencoded txns:")

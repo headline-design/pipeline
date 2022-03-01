@@ -1,9 +1,17 @@
 <button onclick="test()">TEST</button>
+<button onclick="send()">TEST</button>
 <script src="index.js"></script>
 <script>
 const Pipeline = window.pipeline
 const wallet = Pipeline.init()
 function test(){Pipeline.connect(wallet).then(data => {console.log(data)})
+}
+
+function send(){
+    Pipeline.send(Pipeline.address, parseInt(0), "hello", Pipeline.address, wallet, 0)
+    .then(data => {
+        console.log(data);
+    });
 }
 
 
