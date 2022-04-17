@@ -419,7 +419,9 @@ export default class Pipeline {
             compiled = await this.compileProgram(algodClient, teal)
             let compiledClear = await this.compileProgram(algodClient, teal2)
 
-            let params = await algodClient.getTransactionParams().do();
+            let params = {}
+
+            params = await algodClient.getTransactionParams().do();
 
             let converted = []
             appArgs.forEach(arg => {
@@ -437,9 +439,7 @@ export default class Pipeline {
             let gints = bytesInts[3]
 
             let txn = algosdk.makeApplicationCreateTxnFromObject({
-                suggestedParams: {
-                    ...params,
-                },
+                suggestedParams: params,
                 from: this.address,
                 numLocalByteSlices: lbytes,
                 numGlobalByteSlices: gbytes,
@@ -493,9 +493,7 @@ export default class Pipeline {
         let txn = ""
 
         txn = algosdk.makeApplicationOptInTxnFromObject({
-            suggestedParams: {
-                ...params,
-            },
+            suggestedParams: params,
             from: this.address,
             appIndex: parseInt(appId),
             appArgs: appArgs
@@ -547,9 +545,7 @@ export default class Pipeline {
         let params = await algodClient.getTransactionParams().do();
 
         let txn = algosdk.makeApplicationDeleteTxnFromObject({
-            suggestedParams: {
-                ...params,
-            },
+            suggestedParams: params,
             from: this.address,
             appIndex: parseInt(appId),
         });
