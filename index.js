@@ -136,7 +136,7 @@ export default class Pipeline {
         return address;
     }
 
-    static async sign(mytxnb, group = false) {
+    static async sign(mytxnb, group = false, signed = []) {
 
         console.log(mytxnb)
         let signedTxn = ""
@@ -231,6 +231,12 @@ export default class Pipeline {
                     return { txn: encodedTxn }
                 }
             });
+
+            if (group && signed.length !== 0){
+                for (let i = 0; i< signed.length; i++){
+                    txnsToSign[i].Signers = []
+                }
+            }
 
             let requestParams = [txnsToSign]
             console.log("TXNs to Sign:")
