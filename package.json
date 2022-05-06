@@ -7,7 +7,8 @@
   "type": "module",
   "scripts": {
     "test": "npm test",
-    "build": "parcel build index.js"
+    "build": "parcel build index.js",
+    "serve": "serve -s dist"
   },
   "keywords": [
     "Algorand",
@@ -30,6 +31,7 @@
     "hi-base32": "^0.5.1",
     "parcel-bundler": "^1.12.5",
     "regenerator-runtime": "^0.13.9",
+    "serve": "^13.0.2",
     "tslib": "2.3.1"
   }
 }
