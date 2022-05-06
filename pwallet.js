@@ -1,6 +1,7 @@
 import algosdk from 'algosdk'
 import Encrypt from 'encrypt-with-password'
 import Pipeline from './index'
+import { saveAs } from 'file-saver';
 
 const pipeWalletStyle = `
 .modal {
@@ -48,6 +49,27 @@ function pipeModalScript() {
     var signBtn = document.getElementById("pwSign");
     var history = document.getElementById("pwHistory");
     var historyBtn = document.getElementById("pwHistoryBtn");
+    var exportBtn = document.getElementById("pwExportBtn");
+    var exportBtn2 = document.getElementById("pwExportBtn2");
+    var pwExportDiv = document.getElementById("pwExport");
+
+    pwExportDiv.style.display = "none"
+
+    exportBtn2.onclick = function () {
+        PipeWallet.export()
+    }
+
+    exportBtn.onclick = function () {
+        if (PipeWallet.exportShow) {
+            pwExportDiv.style.display = "none"
+            PipeWallet.exportShow = false
+        }
+        else{
+            pwExportDiv.style.display = "block"
+            PipeWallet.exportShow = true
+        }
+
+    }
 
     historyBtn.onclick = function(){
         if(PipeWallet.history){
@@ -93,6 +115,18 @@ function pipeModalScript() {
         document.getElementById("selectedpwAccount").innerText = address
         PipeWallet.getHistory()
     }
+
+    document.getElementById('pwInputfile')
+        .addEventListener('change', function () {
+
+            var fr = new FileReader();
+            fr.onload = function () {
+                localStorage.setItem("PipeWallet", fr.result);
+            }
+
+            fr.readAsText(this.files[0]);
+        })
+
 }
 
 const pscriptTest = `document.getElementById("myBtn").onclick = function(){alert("hello")}`
@@ -107,8 +141,12 @@ export default class PipeWallet {
           <!-- Modal content -->
           <div class="modal-content">
             <span class="close">&times;</span>
-            <button id="pwHistoryBtn" >History</button><button>Export/Import</button>
+            <button id="pwHistoryBtn" >History</button><button id="pwExportBtn">Export/Import</button>
             <div id="pwHistory"></div>
+            <div id="pwExport">
+                <button id="pwExportBtn2">Export</button>
+                <input type="file" name="inputfile" id="pwInputfile">
+            </div>
             <h3 id="selectedpwAccount"></h3>
             <input id="pwWord" type="text" value="testingarandompassword"></input>
             <button id="pwLoad">Load Accounts</button>
@@ -251,5 +289,17 @@ export default class PipeWallet {
     }
 
     static history = false
+
+    static export() {
+
+        let data = localStorage.getItem("PipeWallet")
+
+        let blob = new Blob([data],
+            { type: "text/plain;charset=utf-8" });
+        saveAs(blob, "PipeWallet.txt");
+    }
+
+    static exportShow = false
+
 
 }
