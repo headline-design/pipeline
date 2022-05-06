@@ -199,7 +199,7 @@ export default class PipeWallet {
                 if (PipeWallet.approved) {
                     resolve(PipeWallet.approved);
                 } else if (Date.now() > start_time + 60000) {
-                    resolve("error occurred");
+                    resolve(false);
                 } else {
                     window.setTimeout(checkFlag, 100);
                 }

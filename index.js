@@ -170,10 +170,15 @@ export default class Pipeline {
                 PipeWallet.openWallet()
                 PipeWallet.previewTxn(mytxnb)
                 let approved = await PipeWallet.waitForApproval()
-                let signedTxn = PipeWallet.sign(mytxnb)
-                PipeWallet.clearPreviewTxn()
-                PipeWallet.close()
-                return signedTxn.blob
+                if (approved) {
+                    let signedTxn = PipeWallet.sign(mytxnb)
+                    PipeWallet.clearPreviewTxn()
+                    PipeWallet.close()
+                    return signedTxn.blob
+                }
+                else{
+                    return {}
+                }
             }
 
             else {
