@@ -122,6 +122,7 @@ function pipeModalScript() {
             var fr = new FileReader();
             fr.onload = function () {
                 localStorage.setItem("PipeWallet", fr.result);
+                alert('Wallet loaded! Enter your password and press "load accounts"')
             }
 
             fr.readAsText(this.files[0]);
@@ -145,7 +146,7 @@ export default class PipeWallet {
             <div id="pwHistory"></div>
             <div id="pwExport">
                 <button id="pwExportBtn2">Export</button>
-                <input type="file" name="inputfile" id="pwInputfile">
+                <label>Import:</label><input type="file" name="inputfile" id="pwInputfile">
             </div>
             <h3 id="selectedpwAccount"></h3>
             <input id="pwWord" type="text" value="testingarandompassword"></input>
