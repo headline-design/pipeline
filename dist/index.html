@@ -1,18 +1,25 @@
-<button onclick="test()">TEST</button>
-<button onclick="send()">TEST</button>
+<!DOCTYPE html>
+<div>
+    <h1>The  appp</h1>
+    <button onclick="test()">Connect</button>
+    <button onclick="send()">Send Test TXN</button>
+</div>
+<div id="pipeWallet"></div>
 <script src="index.js"></script>
 <script>
-const Pipeline = window.pipeline
-const wallet = Pipeline.init()
-function test(){Pipeline.connect(wallet).then(data => {console.log(data)})
-}
+    const Pipeline = window.pipeline
+    const wallet = Pipeline.init()
+    Pipeline.pipeConnector = "PipeWallet"
+    function test() {
+        Pipeline.connect(wallet).then(data => { console.log(data) })
+    }
 
-function send(){
-    Pipeline.send(Pipeline.address, parseInt(0), "hello", Pipeline.address, wallet, 0)
-    .then(data => {
-        console.log(data);
-    });
-}
+    function send() {
+        Pipeline.send(Pipeline.address, parseInt(0), "hello", Pipeline.address, wallet, 0)
+            .then(data => {
+                console.log(data);
+            });
+    }
 
 
 </script>
