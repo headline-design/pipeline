@@ -178,7 +178,7 @@ export default class Pipeline {
                         return signedTxn.blob
                     }
                     else {
-                        signedGroup = []
+                        let signedGroup = []
 
                         mytxnb.forEach(transaction => {
                             let signed = PipeWallet.sign(transaction)
