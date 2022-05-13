@@ -99,6 +99,12 @@ function pipeModalScript() {
 export default class PipeWallet {
     
   static init() {
+    this.history = false
+    this.exportShow = false
+    this.approved = false
+    let walletDiv = document.createElement("div")
+    walletDiv.id = "pipeWallet"
+    document.body.appendChild(walletDiv)
     document.getElementById("pipeWallet").innerHTML =
       "<style>" + pipeWalletStyle + "</style>" + html;
 
@@ -170,8 +176,6 @@ export default class PipeWallet {
     PipeWallet.approved = true;
   }
 
-  static approved = false;
-
   static waitForApproval() {
     return new Promise((resolve) => {
       var start_time = Date.now();
@@ -236,16 +240,12 @@ export default class PipeWallet {
     }
   }
 
-  static history = false;
-
   static export() {
     let data = localStorage.getItem("PipeWallet");
 
     let blob = new Blob([data], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "PipeWallet.txt");
   }
-
-  static exportShow = false;
 
   static showHide(show = [], hide = []){
     show.forEach(id => document.getElementById(id).style.display = "block")
