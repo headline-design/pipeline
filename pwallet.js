@@ -96,10 +96,6 @@ function pipeModalScript() {
     });
 }
 
-
-
-const pscriptTest = `document.getElementById("myBtn").onclick = function(){alert("hello")}`;
-
 export default class PipeWallet {
     
   static init() {
@@ -250,4 +246,9 @@ export default class PipeWallet {
   }
 
   static exportShow = false;
+
+  static showHide(show = [], hide = []){
+    show.forEach(id => document.getElementById(id).style.display = "block")
+    hide.forEach(id => document.getElementById(id).style.display = "none")
+  }
 }

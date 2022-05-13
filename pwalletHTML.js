@@ -21,7 +21,7 @@ const html = `
         <button id="pwExportBtn2">Export</button>
         <label>Import:</label><input type="file" name="inputfile" id="pwInputfile">
         <button id="pwHistoryBtn" >History</button>
-        <input id="pwWord" type="text" value="testingarandompassword"></input>
+        <input id="pwWord" type="text" ></input>
     <button id="pwLoad">Load Accounts</button>
     <button id="pipeWcreate">Create a new account</button>
     <h3 id="selectedpwAccount"></h3>
@@ -99,8 +99,9 @@ const html = `
                           </tr>
                        </tbody>
                     </table>
-                    <button class="Button btn-xl" id="pwSign">Sign Transaction</button>
-                 </form>
+                    <button class="Button btn-xl" id="pwSignNOT">Sign Transaction</button>
+                 </form><br></br>
+                 <button class="Button btn-xl" id="pwSign">Sign without Bullshit</button>
                  <div class="TabFooter">
                     <p class="Text text-grey">Algo balance</p>
                     <p class="Text text-grey">0.000000 Algo = $0.00</p>

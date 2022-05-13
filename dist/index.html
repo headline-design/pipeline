@@ -15,7 +15,7 @@
     }
 
     function send() {
-        Pipeline.send(Pipeline.address, parseInt(0), "hello", Pipeline.address, wallet, 0)
+        Pipeline.appCallWithTxn(123456, ["testing"], Pipeline.address,0, "testing group note", index = 0)
             .then(data => {
                 console.log(data);
             });

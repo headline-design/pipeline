@@ -171,10 +171,24 @@ export default class Pipeline {
                 PipeWallet.previewTxn(mytxnb)
                 let approved = await PipeWallet.waitForApproval()
                 if (approved) {
-                    let signedTxn = PipeWallet.sign(mytxnb)
-                    PipeWallet.clearPreviewTxn()
-                    PipeWallet.close()
-                    return signedTxn.blob
+                    if (!group) {
+                        let signedTxn = PipeWallet.sign(mytxnb)
+                        PipeWallet.clearPreviewTxn()
+                        PipeWallet.close()
+                        return signedTxn.blob
+                    }
+                    else {
+                        signedGroup = []
+
+                        mytxnb.forEach(transaction => {
+                            let signed = PipeWallet.sign(transaction)
+                            signedGroup.push(signed.blob)
+                        })
+                        
+                        console.log("Signed Group:")
+                        console.log(signedGroup)
+                        return signedGroup
+                    }
                 }
                 else{
                     return {}
