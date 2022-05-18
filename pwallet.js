@@ -2,8 +2,10 @@ import algosdk from "algosdk";
 import Encrypt from "encrypt-with-password";
 import Pipeline from "./index";
 import { saveAs } from "file-saver";
-import pipeWalletStyle from './pwalletCss.js'
+//import pipeWalletStyle from './pwalletCss.js'
 import html from './pwalletHTML.js'
+
+const pipeWalletStyle = ''
 
 function pipeModalScript() {
   var modal = document.getElementById("pipeWalletModal");
