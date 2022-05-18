@@ -37,7 +37,7 @@ export default class Pipeline {
             qrcodeModal: QRCodeModal,
         });
 
-        PipeWallet.init()
+        //PipeWallet.init()
 
         this.wallet = new MyAlgo();
         return new MyAlgo();
