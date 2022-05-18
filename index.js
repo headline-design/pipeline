@@ -310,7 +310,7 @@ export default class Pipeline {
         }
     }
 
-    static makeAppCall(appId, appArgs, params, accounts, assets) {
+    static makeAppCall(appId, appArgs, params, accounts, assets,applications) {
         let id = parseInt(appId)
         let converted = []
         appArgs.forEach(arg => {
@@ -320,7 +320,7 @@ export default class Pipeline {
         })
         appArgs = converted
 
-        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs, accounts, undefined, assets)
+        let txn = algosdk.makeApplicationNoOpTxn(this.address, params, id, appArgs, accounts, applications, assets)
 
         return txn
 
