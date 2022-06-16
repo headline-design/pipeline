@@ -138,9 +138,6 @@ export default class Pipeline {
                 checkFlag();
             });
         }
-
-        const address = await waitForAddress();
-        return address;
     }
 
     static async sign(mytxnb, group = false, signed = []) {
