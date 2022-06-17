@@ -93,7 +93,7 @@ export default class Pipeline {
                     this.chainId = chainId
                 });
 
-                const { accounts, chainId } = await connector.connect();
+                const { accounts, chainId } = await this.connector.connect();
                 if(accounts.length > 0) {
                     this.address = accounts[0];
                 }
