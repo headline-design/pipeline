@@ -2,15 +2,11 @@ import MyAlgo from '@randlabs/myalgo-connect'
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "algorand-walletconnect-qrcode-modal";
 import { formatJsonRpcRequest } from "@json-rpc-tools/utils";
-import { encode, decode } from "algo-msgpack-with-bigint";
-import base32 from 'hi-base32';
-import { CachedKeyDecoder } from 'algo-msgpack-with-bigint/dist/CachedKeyDecoder';
 import createAsaTxn from './createAsaTxn.js'
-import { getAppIndex, getAsaIndex, u8array, readGlobalState } from './teal_utils.js';
+import { getAppIndex, getAsaIndex, readGlobalState, u8array } from './teal_utils.js';
 import algosdk from 'algosdk'
-import { configIndexer, configClient, sendTxns, configAlgosdk } from './utils.js';
+import { configAlgosdk, configClient, configIndexer, sendTxns } from './utils.js';
 import 'regenerator-runtime'
-
 import PipeWallet from './pwallet'
 
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
@@ -37,10 +33,8 @@ export default class Pipeline {
             qrcodeModal: QRCodeModal,
         });
 
-        //PipeWallet.init()
-
         this.wallet = new MyAlgo();
-        return new MyAlgo();
+        return this.wallet;
     }
 
     static async balance(address) {
@@ -61,8 +55,6 @@ export default class Pipeline {
     }
 
     static async connect(wallet) {
-        this.address = "";
-
         switch (this.pipeConnector) {
             case "myAlgoWallet":
                 try {
@@ -70,37 +62,45 @@ export default class Pipeline {
                     let item1 = accounts[0]
                     item1 = item1['address']
                     this.address = item1;
-                    return item1;
                 } catch (err) {
                     console.error(err)
                 }
                 break;
             case "WalletConnect":
 
-                this.connector.on("connect", (error, payload) => {
+                this.connector.on("disconnect", (error, payload) => {
                     if (error) {
                         throw error;
                     }
-                    console.log(payload)
-                    this.address = payload.params[0].accounts[0];
-                    this.chainId = payload.params[0].chainId
-                }
-                );
+
+                    // Delete connector
+                    this.connector = new WalletConnect({
+                        bridge: "https://bridge.walletconnect.org", // Required
+                        qrcodeModal: QRCodeModal,
+                    });
+                });
 
                 this.connector.on("session_update", (error, payload) => {
                     alert(error + payload)
                     if (error) {
                         throw error;
                     }
-                    // Get updated accounts
-                    this.chainId = payload.params[0].chainId
-
+                    // Get updated accounts and chainId
+                    const { accounts, chainId } = payload.params[0];
+                    if(accounts.length > 0) {
+                        this.address = accounts[0];
+                    }
+                    this.chainId = chainId
                 });
+
+                const { accounts, chainId } = await this.connector.connect();
+                if(accounts.length > 0) {
+                    this.address = accounts[0];
+                }
 
                 if (!this.connector.connected) {
                     await this.connector.createSession().then(data => { console.log(data) })
-                }
-                else {
+                } else if(this.connector.accounts.length > 0) {
                     this.address = this.connector.accounts[0];
                 }
                 break;
@@ -108,13 +108,10 @@ export default class Pipeline {
                 if (typeof AlgoSigner !== 'undefined') {
                     await AlgoSigner.connect()
                     let data = await AlgoSigner.accounts({ ledger: (this.main === true) ? 'MainNet' : 'TestNet' })
-                    let SignerAdd = data[0].address
-                    this.address = SignerAdd;
-                    return SignerAdd
-
+                    this.address = data[0].address;
                 } else {
                     alert('AlgoSigner is NOT installed.');
-                };
+                }
                 break;
             case "PipeWallet":
                 PipeWallet.openWallet()
@@ -122,25 +119,7 @@ export default class Pipeline {
             default:
                 break;
         }
-
-        function waitForAddress() {
-            return new Promise(resolve => {
-                var start_time = Date.now();
-                function checkFlag() {
-                    if (Pipeline.address !== "") {
-                        resolve(Pipeline.address);
-                    } else if (Date.now() > start_time + 60000) {
-                        resolve("error occurred");
-                    } else {
-                        window.setTimeout(checkFlag, 200);
-                    }
-                }
-                checkFlag();
-            });
-        }
-
-        const address = await waitForAddress();
-        return address;
+        return this.address;
     }
 
     static async sign(mytxnb, group = false, signed = []) {
@@ -153,7 +132,6 @@ export default class Pipeline {
                 signedTxn = await this.wallet.signTransaction(mytxnb.toByte())
                 signedTxn = signedTxn.blob;
                 return signedTxn
-
             }
             else {
                 signedTxn = await this.wallet.signTransaction(mytxnb.map(txn => txn.toByte()))
@@ -190,7 +168,7 @@ export default class Pipeline {
                         return signedGroup
                     }
                 }
-                else{
+                else {
                     return {}
                 }
             }
@@ -327,9 +305,9 @@ export default class Pipeline {
     }
 
     static makeTransfer(address, amt, myNote, index = 0, params = {}) {
-        var buf = new Array(myNote.length)
-        var encodedNote = new Uint8Array(buf)
-        for (var i = 0, strLen = myNote.length; i < strLen; i++) {
+        const buf = new Array(myNote.length);
+        const encodedNote = new Uint8Array(buf);
+        for (let i = 0, strLen = myNote.length; i < strLen; i++) {
             encodedNote[i] = myNote.charCodeAt(i)
         }
 
