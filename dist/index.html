@@ -8,7 +8,7 @@
 <script>
     const Pipeline = window.pipeline
     const wallet = Pipeline.init()
-    Pipeline.pipeConnector = "PipeWallet"
+    Pipeline.pipeConnector = "AlgoSigner"
     function test() {
         Pipeline.connect(wallet).then(data => { console.log(data) })
     }
