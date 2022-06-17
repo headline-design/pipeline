@@ -68,13 +68,16 @@ export default class Pipeline {
                 break;
             case "WalletConnect":
 
-                this.connector.on("connect", (error, payload) => {
+                this.connector.on("disconnect", (error, payload) => {
                     if (error) {
                         throw error;
                     }
-                    console.log(payload)
-                    this.address = payload.params[0].accounts[0];
-                    this.chainId = payload.params[0].chainId
+
+                    // Delete connector
+                    this.connector = new WalletConnect({
+                        bridge: "https://bridge.walletconnect.org", // Required
+                        qrcodeModal: QRCodeModal,
+                    });
                 });
 
                 this.connector.on("session_update", (error, payload) => {
@@ -82,15 +85,22 @@ export default class Pipeline {
                     if (error) {
                         throw error;
                     }
-                    // Get updated accounts
-                    this.chainId = payload.params[0].chainId
-
+                    // Get updated accounts and chainId
+                    const { accounts, chainId } = payload.params[0];
+                    if(accounts.length > 0) {
+                        this.address = accounts[0];
+                    }
+                    this.chainId = chainId
                 });
+
+                const { accounts, chainId } = await connector.connect();
+                if(accounts.length > 0) {
+                    this.address = accounts[0];
+                }
 
                 if (!this.connector.connected) {
                     await this.connector.createSession().then(data => { console.log(data) })
-                }
-                else {
+                } else if(this.connector.accounts.length > 0) {
                     this.address = this.connector.accounts[0];
                 }
                 break;
