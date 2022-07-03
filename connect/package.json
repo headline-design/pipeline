@@ -1,0 +1,85 @@
+{
+  "_from": "@perawallet/connect@^0.1.2",
+  "_id": "@perawallet/connect@0.1.3",
+  "_inBundle": false,
+  "_integrity": "sha512-CWd9WzbcW7ZBItsYDIqDfJk+YUwIpAr4QV2yQru9jlDIAu+3liS5bxhhT3QbuxzcbaYzpOFKbdMs8nNFbPKMxQ==",
+  "_location": "/@perawallet/connect",
+  "_phantomChildren": {
+    "base64-js": "1.5.1",
+    "ieee754": "1.2.1"
+  },
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "@perawallet/connect@^0.1.2",
+    "name": "@perawallet/connect",
+    "escapedName": "@perawallet%2fconnect",
+    "scope": "@perawallet",
+    "rawSpec": "^0.1.2",
+    "saveSpec": null,
+    "fetchSpec": "^0.1.2"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@perawallet/connect/-/connect-0.1.3.tgz",
+  "_shasum": "11e9fd85eebe3999b2aa74088b41d6e466f92587",
+  "_spec": "@perawallet/connect@^0.1.2",
+  "_where": "C:\\Users\\headl\\Documents\\Github\\Pipeline",
+  "author": {
+    "name": "Pera Wallet"
+  },
+  "bugs": {
+    "url": "https://github.com/perawallet/connect/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@json-rpc-tools/utils": "^1.7.6",
+    "@walletconnect/client": "^1.7.7",
+    "buffer": "^6.0.3",
+    "react-qrcode-logo": "^2.7.0"
+  },
+  "deprecated": false,
+  "description": "JavaScript SDK for integrating Pera Wallet to web applications.",
+  "devDependencies": {
+    "@hipo/eslint-config-base": "^4.1.1",
+    "@hipo/eslint-config-react": "^2.2.0",
+    "@hipo/eslint-config-typescript": "^1.1.0",
+    "@rollup/plugin-image": "^2.1.1",
+    "@types/react": "^17.0.43",
+    "@types/react-dom": "^17.0.14",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
+    "eslint": "^8.12.0",
+    "eslint-config-prettier": "^8.5.0",
+    "node-sass": "^7.0.1",
+    "prettier": "^2.6.1",
+    "rollup": "^2.70.1",
+    "rollup-plugin-eslint": "^7.0.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.31.2",
+    "sass": "^1.49.11",
+    "typescript": "^4.6.3"
+  },
+  "homepage": "https://github.com/perawallet/connect#readme",
+  "license": "ISC",
+  "main": "dist/index.js",
+  "name": "@perawallet/connect",
+  "peerDependencies": {
+    "algosdk": "^1.15.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/perawallet/connect.git"
+  },
+  "scripts": {
+    "build": "npm run eslint && ./node_modules/.bin/rollup -c",
+    "dev": "rollup -c -w",
+    "eslint": "eslint --ext .jsx,.js,.tsx,.ts src/"
+  },
+  "types": "./dist/index.d.ts",
+  "version": "0.1.3"
+}

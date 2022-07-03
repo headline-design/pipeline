@@ -2,19 +2,27 @@
 <div>
     <h1>The  appp</h1>
     <button onclick="test()">Connect</button>
-    <button onclick="send()">Send Test TXN</button>
+    <button onclick="send()">Send Test Group TXN</button>
+    <button onclick="send2()">Send Test single TXN</button>
 </div>
 <script src="index.js"></script>
 <script>
     const Pipeline = window.pipeline
     const wallet = Pipeline.init()
-    Pipeline.pipeConnector = "AlgoSigner"
+    Pipeline.pipeConnector = "PeraWallet"
     function test() {
         Pipeline.connect(wallet).then(data => { console.log(data) })
     }
 
     function send() {
         Pipeline.appCallWithTxn(123456, ["testing"], Pipeline.address,0, "testing group note", index = 0)
+            .then(data => {
+                console.log(data);
+            });
+    }
+
+    function send2() {
+        Pipeline.send(Pipeline.address,0, "testing group note", undefined,undefined, 0)
             .then(data => {
                 console.log(data);
             });

@@ -185,7 +185,12 @@ class App extends Component {
       <div>
         <h1>Edit the code to make things happen!</h1>
         <h2>{this.state.net}</h2>
-        <select onChange={this.switchConnector}><option>myAlgoWallet</option><option>WalletConnect</option><option>AlgoSigner</option></select><br></br>
+        <select onChange={this.switchConnector}>
+          <option>myAlgoWallet</option>
+          <option>WalletConnect</option>
+          <option>PeraWallet</option>
+          <option>AlgoSigner</option>
+          </select><br></br>
 
         <button onClick={this.handleConnect}>Click to Connect</button><br></br>
         <button onClick={this.handleSend}>Click to Send Transaction</button><br></br>
