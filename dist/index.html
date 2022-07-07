@@ -9,9 +9,11 @@
 <script>
     const Pipeline = window.pipeline
     const wallet = Pipeline.init()
-    Pipeline.pipeConnector = "PeraWallet"
+    //Pipeline.pipeConnector = "PeraWallet"
     function test() {
-        Pipeline.connect(wallet).then(data => { console.log(data) })
+        Pipeline.connect(wallet).then(data => {
+            Pipeline.readAccount(data).then(data2=>alert(JSON.stringify(data2)))
+        })
     }
 
     function send() {

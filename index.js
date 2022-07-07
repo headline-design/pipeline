@@ -69,6 +69,20 @@ export default class Pipeline{
     }
   }
 
+  static async readAccount(address) {
+    let indexerURL = configIndexer(this.main, this.EnableDeveloperAPI, this);
+
+    let url2 = indexerURL + "/v2/accounts/" + address;
+    try {
+      let data = await fetch(url2);
+      let data2 = await data.json();
+      return data2
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
   static async connect(wallet) {
     switch (this.pipeConnector) {
       case "myAlgoWallet":
