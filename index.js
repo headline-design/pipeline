@@ -302,30 +302,36 @@ export default class Pipeline{
                           */
           // Sign transaction
 
-          let txnsToSign = txns.map((txnb,index) => {
+          let txnsToSign = []
+
+          let index = 0
+          
+          txns.forEach((txnb) => {
             let packed = algosdk.encodeUnsignedTransaction(txnb);
             let encodedTxn = Buffer.from(packed).toString("base64");
+            let signers = [signed[index] || Pipeline.address]
 
             if (this.pipeConnector === "WalletConnect") {
-              return {
+              txnsToSign.push({
                 txn: encodedTxn,
                 message: "",
                 // Note: if the transaction does not need to be signed (because it's part of an atomic group
                 // that will be signed by another party), specify an empty singers array like so:
-              signers: [ signed[index] || Pipeline.address],
-              };
+                signers: signers,
+              });
             } else {
-              return { txn: encodedTxn };
+              txnsToSign.push({ txn: encodedTxn, signers: signers });
             }
+            index++
           });
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = [signed[index] || Pipeline.address];
+              txnsToSign[i].Signers = [signed[i] || Pipeline.address];
             }
           }
 
-          let requestParams = [txnsToSign];
+          let requestParams = txnsToSign;
           console.log("TXNs to Sign:");
           console.log(requestParams);
 
