@@ -331,7 +331,7 @@ export default class Pipeline{
             }
           }
 
-          let requestParams = txnsToSign;
+          let requestParams = [txnsToSign];
           console.log("TXNs to Sign:");
           console.log(requestParams);
 
