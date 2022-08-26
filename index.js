@@ -314,13 +314,17 @@ export default class Pipeline{
                 // that will be signed by another party), specify an empty singers array like so:
                 //signers: signers,
               });
+            } else {
+              txnsToSign.push({
+                txn: encodedTxn
+              })
             }
           });
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
               txnsToSign[i].Signers = [signed[i]];
-              txnsToSign[i].signers =  [signed[i]];
+              txnsToSign[i].signers = [signed[i]];
             }
           }
 
