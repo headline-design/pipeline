@@ -202,21 +202,21 @@ export default class Pipeline{
 
     else {
       if (this.pipeConnector === "PeraWallet") {
-        if (!group) {
-          signedTxn = await this.PeraWallet.signTransaction([[{ txn: mytxnb, signers: [Pipeline.address] }]]);
+        if (!group){
+          signedTxn = await this.PeraWallet.signTransaction([[{txn: mytxnb,signers:[Pipeline.address]}]]);
           return signedTxn[0];
         }
-        else {
+        else{
           let index = 0
           let groupToSign = []
           mytxnb.forEach((txn) => {
             groupToSign.push([{ txn: txn, signers: [signed[index] || Pipeline.address] }])
             index++
           })
-          signedTxn = await this.PeraWallet.signTransaction(groupToSign)
-          let txnsb = [];
-          signedTxn.forEach((item) => {
-            txnsb.push(item)
+        signedTxn = await this.PeraWallet.signTransaction(groupToSign)
+        let txnsb = [];
+        signedTxn.forEach((item) => {
+          txnsb.push(item)
         })
         return txnsb
         }
@@ -307,24 +307,22 @@ export default class Pipeline{
             let encodedTxn = Buffer.from(packed).toString("base64");
 
             if (this.pipeConnector === "WalletConnect") {
-              txnsToSign.push({
+              return {
                 txn: encodedTxn,
                 message: "",
                 // Note: if the transaction does not need to be signed (because it's part of an atomic group
                 // that will be signed by another party), specify an empty singers array like so:
-                //signers: signers,
-              });
+                // signers: [],
+              };
             } else {
-              txnsToSign.push({
-                txn: encodedTxn
-              })
+              return { txn: encodedTxn };
             }
           });
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = [signed[i]];
-              txnsToSign[i].signers = [signed[i]];
+              txnsToSign[i].Signers = [signed[i] || Pipeline.address];
+              txnsToSign[i].Signers = [signed[i] || Pipeline.address];
             }
           }
 
