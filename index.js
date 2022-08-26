@@ -202,19 +202,21 @@ export default class Pipeline{
 
     else {
       if (this.pipeConnector === "PeraWallet") {
-        if (!group){
-          signedTxn = await this.PeraWallet.signTransaction([[{txn: mytxnb,signers:[Pipeline.address]}]]);
+        if (!group) {
+          signedTxn = await this.PeraWallet.signTransaction([[{ txn: mytxnb, signers: [Pipeline.address] }]]);
           return signedTxn[0];
         }
-        else{
-        let groupToSign = []
-        mytxnb.forEach((txn) => {
-          groupToSign.push([{txn: txn,signers:[Pipeline.address]}])
-        })
-        signedTxn = await this.PeraWallet.signTransaction(groupToSign)
-        let txnsb = [];
-        signedTxn.forEach((item) => {
-          txnsb.push(item)
+        else {
+          let index = 0
+          let groupToSign = []
+          mytxnb.forEach((txn) => {
+            groupToSign.push([{ txn: txn, signers: [signers[index] || Pipeline.address] }])
+            index++
+          })
+          signedTxn = await this.PeraWallet.signTransaction(groupToSign)
+          let txnsb = [];
+          signedTxn.forEach((item) => {
+            txnsb.push(item)
         })
         return txnsb
         }
@@ -300,7 +302,7 @@ export default class Pipeline{
                           */
           // Sign transaction
 
-          let txnsToSign = txns.map((txnb) => {
+          let txnsToSign = txns.map((txnb,index) => {
             let packed = algosdk.encodeUnsignedTransaction(txnb);
             let encodedTxn = Buffer.from(packed).toString("base64");
 
@@ -310,7 +312,7 @@ export default class Pipeline{
                 message: "",
                 // Note: if the transaction does not need to be signed (because it's part of an atomic group
                 // that will be signed by another party), specify an empty singers array like so:
-                // signers: [],
+              signers: [ signers[index] || Pipeline.address],
               };
             } else {
               return { txn: encodedTxn };
@@ -319,7 +321,7 @@ export default class Pipeline{
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = [];
+              txnsToSign[i].Signers = [signers[index] || Pipeline.address];
             }
           }
 
