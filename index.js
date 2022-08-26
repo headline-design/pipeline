@@ -317,7 +317,7 @@ export default class Pipeline{
                 message: "",
                 // Note: if the transaction does not need to be signed (because it's part of an atomic group
                 // that will be signed by another party), specify an empty singers array like so:
-                signers: signers,
+                //signers: signers,
               });
             } else {
               txnsToSign.push({ txn: encodedTxn, signers: signers });
@@ -327,7 +327,8 @@ export default class Pipeline{
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = [signed[i] || Pipeline.address];
+              txnsToSign[i].Signers = signers;
+              txnsToSign[i].signers = signers;
             }
           }
 
