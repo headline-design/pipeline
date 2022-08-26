@@ -302,14 +302,9 @@ export default class Pipeline{
                           */
           // Sign transaction
 
-          let txnsToSign = []
-
-          let index = 0
-          
-          txns.forEach((txnb) => {
+          let txnsToSign = txns.map((txnb) => {
             let packed = algosdk.encodeUnsignedTransaction(txnb);
             let encodedTxn = Buffer.from(packed).toString("base64");
-            let signers = [signed[index] || Pipeline.address]
 
             if (this.pipeConnector === "WalletConnect") {
               txnsToSign.push({
@@ -319,16 +314,13 @@ export default class Pipeline{
                 // that will be signed by another party), specify an empty singers array like so:
                 //signers: signers,
               });
-            } else {
-              txnsToSign.push({ txn: encodedTxn, signers: signers });
             }
-            index++
           });
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = signers;
-              txnsToSign[i].signers = signers;
+              txnsToSign[i].Signers = [signed[i]];
+              txnsToSign[i].signers =  [signed[i]];
             }
           }
 
