@@ -210,7 +210,7 @@ export default class Pipeline{
           let index = 0
           let groupToSign = []
           mytxnb.forEach((txn) => {
-            groupToSign.push([{ txn: txn, signers: [signers[index] || Pipeline.address] }])
+            groupToSign.push([{ txn: txn, signers: [signed[index] || Pipeline.address] }])
             index++
           })
           signedTxn = await this.PeraWallet.signTransaction(groupToSign)
@@ -312,7 +312,7 @@ export default class Pipeline{
                 message: "",
                 // Note: if the transaction does not need to be signed (because it's part of an atomic group
                 // that will be signed by another party), specify an empty singers array like so:
-              signers: [ signers[index] || Pipeline.address],
+              signers: [ signed[index] || Pipeline.address],
               };
             } else {
               return { txn: encodedTxn };
@@ -321,7 +321,7 @@ export default class Pipeline{
 
           if (group && signed.length !== 0) {
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = [signers[index] || Pipeline.address];
+              txnsToSign[i].Signers = [signed[index] || Pipeline.address];
             }
           }
 
