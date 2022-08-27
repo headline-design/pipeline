@@ -319,14 +319,20 @@ export default class Pipeline{
             }
           });
 
+          let nestedArray = []
+
           if (group && signed.length !== 0) {
+
             for (let i = 0; i < signed.length; i++) {
-              txnsToSign[i].Signers = [signed[i] || Pipeline.address];
-              txnsToSign[i].Signers = [signed[i] || Pipeline.address];
+              if (signed[i] !== Pipeline.address) {
+                txnsToSign[i].signers = [];
+              }
+              nestedArray[i] = [txnsToSign[i]]
+
             }
           }
 
-          let requestParams = [txnsToSign];
+          let requestParams = !group?[txnsToSign]:nestedArray
           console.log("TXNs to Sign:");
           console.log(requestParams);
 

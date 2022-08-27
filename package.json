@@ -1,6 +1,6 @@
 {
   "name": "@pipeline-ui-2/pipeline",
-  "version": "1.6.0",
+  "version": "1.6.5",
   "description": "Class to send transactions to Algorand network with MyAlgo Connect",
   "source": "index.js",
   "main": "dist/index.js",
