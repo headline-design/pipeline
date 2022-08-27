@@ -327,12 +327,12 @@ export default class Pipeline{
               if (signed[i] !== Pipeline.address) {
                 txnsToSign[i].signers = [];
               }
-              nestedArray[i] = [txnsToSign[i]]
+              //nestedArray[i] = [txnsToSign[i]]
 
             }
           }
 
-          let requestParams = !group?[txnsToSign]:nestedArray
+          let requestParams = [txnsToSign]
           console.log("TXNs to Sign:");
           console.log(requestParams);
 

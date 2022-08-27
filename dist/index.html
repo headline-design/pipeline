@@ -9,7 +9,7 @@
 <script>
     const Pipeline = window.pipeline
     const wallet = Pipeline.init()
-    //Pipeline.pipeConnector = "PeraWallet"
+    Pipeline.pipeConnector = "AlgoSigner"
     function test() {
         Pipeline.connect(wallet).then(data => {
             Pipeline.readAccount(data).then(data2=>alert(JSON.stringify(data2)))
@@ -17,7 +17,8 @@
     }
 
     function send() {
-        Pipeline.appCallWithTxn(123456, ["testing"], Pipeline.address,0, "testing group note", index = 0)
+
+       Pipeline.appCallWithTxn(123456, ["testing"], Pipeline.address,0, "testing group note", index = 0)
             .then(data => {
                 console.log(data);
             });
