@@ -327,8 +327,6 @@ export default class Pipeline{
               if (signed[i] !== Pipeline.address) {
                 txnsToSign[i].signers = [];
               }
-              //nestedArray[i] = [txnsToSign[i]]
-
             }
           }
 
