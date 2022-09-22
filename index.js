@@ -344,8 +344,14 @@ export default class Pipeline{
             try {
               let result = await this.connector.sendCustomRequest(request);
 
+              console.log("Response from walletconnect: ", result)
+
               let binarySignedTxs = await result.map((tx) => {
-                return new Uint8Array(Buffer.from(tx, "base64"));
+
+                if (tx !== null) {
+                  return new Uint8Array(Buffer.from(tx, "base64"));
+                }
+                else { return tx }
               });
               return !group ? binarySignedTxs[0] : binarySignedTxs;
             } catch (error) {
@@ -355,8 +361,13 @@ export default class Pipeline{
             try {
               let result = await AlgoSigner.signTxn(requestParams);
 
+              console.log("Response from AlgoSigner: ", result)
+
               let binarySignedTxs = await result.map((tx) => {
-                return new Uint8Array(Buffer.from(tx.blob, "base64"));
+                if (tx !== null) {
+                  return new Uint8Array(Buffer.from(tx.blob, "base64"));
+                }
+                else { return tx }
               });
               return !group ? binarySignedTxs[0] : binarySignedTxs;
             } catch (error) {
