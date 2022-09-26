@@ -4,16 +4,28 @@
     <button onclick="test()">Connect</button>
     <button onclick="send()">Send Test Group TXN</button>
     <button onclick="send2()">Send Test single TXN</button>
+    <button onclick="fundEscrow()">Test Fund Escrow</button>
 </div>
 <script src="index.js"></script>
 <script>
     const Pipeline = window.pipeline
+    const PipeWallet = window.PipeWallet
     const wallet = Pipeline.init()
-    Pipeline.pipeConnector = "AlgoSigner"
+    const Escrow = window.pipeEscrow
+    //PipeWallet.init()
+
+    let newEscrow = Escrow.createAccount()
+    console.log(newEscrow)
+
+    Pipeline.pipeConnector = "myAlgoWallet"
     function test() {
         Pipeline.connect(wallet).then(data => {
             Pipeline.readAccount(data).then(data2=>alert(JSON.stringify(data2)))
         })
+    }
+
+    function fundEscrow(){
+        Escrow.fund(1000000)
     }
 
     function send() {

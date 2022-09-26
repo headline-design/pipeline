@@ -113,7 +113,7 @@ export default class PipeWallet {
     pipeModalScript();
   }
 
-  static loadWallet(password = "") {
+  static loadWallet(password = "testing1234") {
     let cipherText = localStorage.getItem("PipeWallet");
     if (cipherText !== null) {
       let decipheredString = Encrypt.decrypt(cipherText, password);

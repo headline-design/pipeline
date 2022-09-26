@@ -18,15 +18,14 @@ import {
 } from "./utils.js";
 import "regenerator-runtime";
 import PipeWallet from "./pwallet";
+import Escrow from "./escrow"
 //in order to solve undiagnosed "missing parenthetical" error, PeraWallet cannot be installed via there instructions. In order to integrate PeraWallet, prior to building Pipeline, in terminal run: cd connect && npm install
 import {PeraWalletConnect} from './connect'
 
-export { PipeWallet }
+export { PipeWallet, sendTxns, Escrow }
 
 
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
-
-export { sendTxns };
 
 export default class Pipeline{
   static alerts = true;
@@ -827,6 +826,8 @@ export default class Pipeline{
 }
 
 window.pipeline = Pipeline
+window.PipeWallet = PipeWallet
+window.pipeEscrow = Escrow
 /* usage
 
 update balance at intervals:
