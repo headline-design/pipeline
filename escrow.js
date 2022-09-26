@@ -4,12 +4,14 @@ import Pipeline from "./index";
 export default class Escrow {
 
     static address = ""
+    static secret = undefined
 
     static createAccount(){
         let newAccount = algosdk.generateAccount();
         console.log(newAccount)
         let mnemonic = algosdk.secretKeyToMnemonic(newAccount.sk)
         this.address = newAccount.addr
+        this.secret = newAccount.sk
         return {
             address: newAccount.addr,
             mnemonic: mnemonic,
@@ -20,15 +22,13 @@ export default class Escrow {
     static sign(mytxnb, group = false) {
 
         if (!group) {
-            let signedTxn = PipeWallet.sign(mytxnb);
-            PipeWallet.clearPreviewTxn();
-            PipeWallet.close();
+            let signedTxn = algosdk.signTransaction(mytxnb, this.secret)
             return signedTxn.blob;
         } else {
             let signedGroup = [];
 
             mytxnb.forEach((transaction) => {
-                let signed = PipeWallet.sign(transaction);
+                let signed = algosdk.signTransaction(transaction, this.secret);
                 signedGroup.push(signed.blob);
             });
 
