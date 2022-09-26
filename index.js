@@ -21,6 +21,8 @@ import PipeWallet from "./pwallet";
 //in order to solve undiagnosed "missing parenthetical" error, PeraWallet cannot be installed via there instructions. In order to integrate PeraWallet, prior to building Pipeline, in terminal run: cd connect && npm install
 import {PeraWalletConnect} from './connect'
 
+export { PipeWallet }
+
 
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
 
