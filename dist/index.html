@@ -37,7 +37,7 @@
     }
 
     function send2() {
-        Pipeline.send(Pipeline.address,0, "testing group note", undefined,undefined, 0)
+        Pipeline.send(Pipeline.address,0, "testing group note", undefined,undefined, 1234567)
             .then(data => {
                 console.log(data);
             });

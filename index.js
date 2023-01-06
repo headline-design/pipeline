@@ -458,33 +458,25 @@ export default class Pipeline {
       txn.type = "axfer";
       txn.assetIndex = parseInt(index);
 
-      txn = algosdk.makeAssetTransferTxn(
+      txn = algosdk.makeAssetTransferTxnWithSuggestedParams(
         txn.from,
         txn.to,
         undefined,
         undefined,
-        txn.fee,
         txn.amount,
-        txn.firstRound,
-        txn.lastRound,
         txn.note,
-        txn.genesisHash,
-        txn.genesisId,
         txn.assetIndex,
+        params,
         undefined
       );
     } else {
-      txn = algosdk.makePaymentTxn(
+      txn = algosdk.makePaymentTxnWithSuggestedParams(
         txn.from,
         txn.to,
-        txn.fee,
         txn.amount,
         undefined,
-        txn.firstRound,
-        txn.lastRound,
         txn.note,
-        txn.genesisHash,
-        txn.genesisId,
+        params,
         undefined
       );
     }
