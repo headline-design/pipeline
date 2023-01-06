@@ -718,7 +718,8 @@ export default class Pipeline {
     appArgs,
     accounts = undefined,
     assets = undefined,
-    applications = undefined
+    applications = undefined,
+    boxes = undefined
   ) {
     let clientb = await configClient(this.main, this.EnableDeveloperAPI);
     let transServer = clientb.tranServer;
@@ -730,7 +731,8 @@ export default class Pipeline {
       params,
       accounts,
       assets,
-      applications
+      applications,
+      boxes
     );
 
     try {
