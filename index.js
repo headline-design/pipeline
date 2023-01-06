@@ -403,7 +403,7 @@ export default class Pipeline {
     }
   }
 
-  static makeAppCall(appId, appArgs, params, accounts, assets, applications) {
+  static makeAppCall(appId, appArgs, params, accounts, assets, applications, boxes) {
     let id = parseInt(appId);
     let converted = [];
     appArgs.forEach((arg) => {
@@ -420,7 +420,11 @@ export default class Pipeline {
       appArgs,
       accounts,
       applications,
-      assets
+      assets,
+      undefined,
+      undefined,
+      undefined,
+      boxes
     );
 
     return txn;

@@ -1,6 +1,6 @@
 {
   "name": "@pipeline-ui-2/pipeline",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "description": "Class to send transactions to Algorand network with MyAlgo Connect",
   "source": "index.js",
   "main": "dist/index.js",
@@ -25,7 +25,7 @@
     "@walletconnect/client": "^1.7.8",
     "algo-msgpack-with-bigint": "^2.1.1",
     "algorand-walletconnect-qrcode-modal": "^1.7.4",
-    "algosdk": "^1.17.0",
+    "algosdk": "^2.0.0",
     "encrypt-with-password": "^1.0.0",
     "file-saver": "^2.0.5",
     "hi-base32": "^0.5.1",
