@@ -1,4 +1,5 @@
 import algosdk from 'algosdk'
+import { Buffer }  from 'buffer'
 
 async function configClient(main, api, ref) {
 

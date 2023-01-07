@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <div>
     <h1>The  appp</h1>
+    <input id="appId" type="number"/>
+    <input id="maxRound" type="number"/>
+    <input id="description" type="text"/>
     <button onclick="test()">Connect</button>
-    <button onclick="send()">Send Test Group TXN</button>
+    <button onclick="send()">Send Test App Call TXN</button>
     <button onclick="send2()">Send Test single TXN</button>
     <button onclick="fundEscrow()">Test Fund Escrow</button>
 </div>
@@ -28,13 +31,13 @@
         Escrow.fund(1000000)
     }
 
-    function send() {
-
-       Pipeline.appCallWithTxn(123456, ["testing"], Pipeline.address,0, "testing group note", index = 0)
-            .then(data => {
-                console.log(data);
-            });
-    }
+    async function send(){
+     let txId = await Pipeline.appCall(
+      parseInt(document.getElementById("appId").value), 
+      ["start",document.getElementById("maxRound").value]
+      )
+     
+  }
 
     function send2() {
         Pipeline.send(Pipeline.address,0, "testing group note", undefined,undefined, 1234567)

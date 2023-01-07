@@ -17,10 +17,11 @@ import {
   sendTxns,
 } from "./utils.js";
 import "regenerator-runtime";
-import PipeWallet from "./pwallet";
-import Escrow from "./escrow"
+import PipeWallet from "./pwallet.js";
+import Escrow from "./escrow.js"
 //in order to solve undiagnosed "missing parenthetical" error, PeraWallet cannot be installed via there instructions. In order to integrate PeraWallet, prior to building Pipeline, in terminal run: cd connect && npm install
 import { PeraWalletConnect } from './connect'
+import encodeUint64 from "./encode64.js";
 
 export { PipeWallet, sendTxns, Escrow }
 
@@ -408,7 +409,7 @@ export default class Pipeline {
     let converted = [];
     appArgs.forEach((arg) => {
       converted.push(
-        typeof arg === "number" ? algosdk.encodeUint64(arg) : u8array(arg)
+        typeof arg === "number" ? encodeUint64(arg) : u8array(arg)
       );
     });
     appArgs = converted;
@@ -608,7 +609,7 @@ export default class Pipeline {
       let converted = [];
       appArgs.forEach((arg) => {
         converted.push(
-          typeof arg === "number" ? algosdk.encodeUint64(arg) : u8array(arg)
+          typeof arg === "number" ? encodeUint64(arg) : u8array(arg)
         );
       });
       appArgs = converted;
