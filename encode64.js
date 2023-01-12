@@ -10,13 +10,13 @@ function encodeUint64(dec) {
     }
   }
 
-  console.log(binString)
+  //console.log(binString)
   let array = []
 
   for (let i = 0; i < 64; i += 8) {
     let piece = binString.slice(i, i + 8)
-    console.log(piece)
-    console.log(binString)
+    //console.log(piece)
+    //console.log(binString)
     array.push(parseInt(piece, 2))
   }
 

@@ -6,9 +6,15 @@ export default class Escrow {
     static address = ""
     static secret = undefined
 
+    static importAccount(mnemonicString){
+        let account = algosdk.mnemonicToSecretKey(mnemonicString)
+        this.address = account.addr
+        this.secret = account.sk
+    }
+
     static createAccount(){
         let newAccount = algosdk.generateAccount();
-        console.log(newAccount)
+
         let mnemonic = algosdk.secretKeyToMnemonic(newAccount.sk)
         this.address = newAccount.addr
         this.secret = newAccount.sk

@@ -2,6 +2,8 @@
 <div>
     <h1>The  appp</h1>
     <input id="appId" type="number"/>
+    <input id="mnemonic" placeholder="mnemonic" type="text"/>
+    <button onclick="importAccount()">Import Account</button>
     <input id="maxRound" type="number"/>
     <input id="description" type="text"/>
     <button onclick="test()">Connect</button>
@@ -15,10 +17,20 @@
     const PipeWallet = window.PipeWallet
     const wallet = Pipeline.init()
     const Escrow = window.pipeEscrow
+    Pipeline.pipeConnector = "escrow"
     //PipeWallet.init()
 
     let newEscrow = Escrow.createAccount()
+    Pipeline.connect().then(addr => alert(addr))
     console.log(newEscrow)
+
+    function importAccount(){
+        let mnemonic = document.getElementById("mnemonic").value
+        Escrow.importAccount(mnemonic)
+        Pipeline.pipeConnector = "escrow"
+        Pipeline.connect().then(data => console.log(data))
+       
+    }
 
     Pipeline.pipeConnector = "myAlgoWallet"
     function test() {

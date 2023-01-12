@@ -175,6 +175,9 @@ export default class Pipeline {
       case "PipeWallet":
         PipeWallet.openWallet();
         break;
+        case "escrow":
+          Pipeline.address = Escrow.address
+          break;
       default:
         break;
     }
