@@ -125,7 +125,7 @@ export default class Pipeline {
       case "WalletConnect":
         this.connector.on("disconnect", (error, payload) => {
           if (error) {
-            throw error;
+            throw new Error(error);
           }
 
           // Delete connector
@@ -138,7 +138,7 @@ export default class Pipeline {
         this.connector.on("session_update", (error, payload) => {
           alert(error + payload);
           if (error) {
-            throw error;
+            throw new Error(error);
           }
           // Get updated accounts and chainId
           const { accounts, chainId } = payload.params[0];
@@ -207,23 +207,28 @@ export default class Pipeline {
 
     else {
       if (this.pipeConnector === "PeraWallet") {
-        if (!group) {
-          signedTxn = await this.PeraWallet.signTransaction([[{ txn: mytxnb, signers: [Pipeline.address] }]]);
-          return signedTxn[0];
+        try {
+          if (!group) {
+            signedTxn = await this.PeraWallet.signTransaction([[{ txn: mytxnb, signers: [Pipeline.address] }]]);
+            return signedTxn[0];
+          }
+          else {
+            let index = 0
+            let groupToSign = []
+            mytxnb.forEach((txn) => {
+              groupToSign.push([{ txn: txn, signers: [signed[index] || Pipeline.address] }])
+              index++
+            })
+            signedTxn = await this.PeraWallet.signTransaction(groupToSign)
+            let txnsb = [];
+            signedTxn.forEach((item) => {
+              txnsb.push(item)
+            })
+            return txnsb
+          }
         }
-        else {
-          let index = 0
-          let groupToSign = []
-          mytxnb.forEach((txn) => {
-            groupToSign.push([{ txn: txn, signers: [signed[index] || Pipeline.address] }])
-            index++
-          })
-          signedTxn = await this.PeraWallet.signTransaction(groupToSign)
-          let txnsb = [];
-          signedTxn.forEach((item) => {
-            txnsb.push(item)
-          })
-          return txnsb
+        catch (e) {
+          throw new Error(e)
         }
 
       }
