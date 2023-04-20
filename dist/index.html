@@ -32,7 +32,6 @@
        
     }
 
-    Pipeline.pipeConnector = "myAlgoWallet"
     function test() {
         Pipeline.connect(wallet).then(data => {
             Pipeline.readAccount(data).then(data2=>alert(JSON.stringify(data2)))

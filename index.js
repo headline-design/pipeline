@@ -111,6 +111,7 @@ export default class Pipeline {
           else { }
         }
         catch (error) {
+          alert("error occured")
           let newAccounts = await this.PeraWallet.connect()
           // Setup the disconnect event listener
           this.PeraWallet.connector?.on("disconnect", function () {
