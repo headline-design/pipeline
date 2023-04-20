@@ -229,7 +229,7 @@ export default class Pipeline {
           }
         }
         catch (e) {
-          throw new Error(e)
+          alert(e)
         }
 
       }
