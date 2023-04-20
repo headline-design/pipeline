@@ -20,7 +20,7 @@ import "regenerator-runtime";
 import PipeWallet from "./pwallet.js";
 import Escrow from "./escrow.js"
 //in order to solve undiagnosed "missing parenthetical" error, PeraWallet cannot be installed via there instructions. In order to integrate PeraWallet, prior to building Pipeline, in terminal run: cd connect && npm install
-import { PeraWalletConnect } from './connect'
+import { PeraWalletConnect } from '@perawallet/connect'
 import encodeUint64 from "./encode64.js";
 
 export { PipeWallet, sendTxns, Escrow }
