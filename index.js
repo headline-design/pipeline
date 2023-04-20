@@ -111,7 +111,6 @@ export default class Pipeline {
           else { }
         }
         catch (error) {
-          alert("error occured")
           let newAccounts = await this.PeraWallet.connect()
           // Setup the disconnect event listener
           this.PeraWallet.connector?.on("disconnect", function () {
@@ -229,7 +228,7 @@ export default class Pipeline {
           }
         }
         catch (e) {
-          alert(e)
+          window.pipelineErrors.push(e)
         }
 
       }
@@ -859,6 +858,7 @@ export default class Pipeline {
 window.pipeline = Pipeline
 window.PipeWallet = PipeWallet
 window.pipeEscrow = Escrow
+window.pipelineErrors = []
 /* usage
 
 update balance at intervals:
