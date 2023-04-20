@@ -52,10 +52,15 @@
   }
 
     function send2() {
+        try{
         Pipeline.send(Pipeline.address,0, "testing group note", undefined,undefined, 1234567)
             .then(data => {
                 console.log(data);
             });
+        }
+        catch(e){
+            alert(e)
+        }
     }
 
 
