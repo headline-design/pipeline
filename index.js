@@ -98,7 +98,13 @@ export default class Pipeline {
         }
         break;
       case "PeraWallet":
-        try {
+
+        let newAccounts = await this.PeraWallet.connect()
+
+        this.address = newAccounts[0];
+
+
+        /* try {
           const peraAccounts = await this.PeraWallet.reconnectSession()
 
           if (peraAccounts.length > 0) {
@@ -119,7 +125,7 @@ export default class Pipeline {
           })
 
           this.address = newAccounts[0];
-        }
+        }*/
 
         break;
       case "WalletConnect":
