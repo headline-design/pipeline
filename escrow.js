@@ -1,5 +1,5 @@
 import algosdk from "algosdk";
-import Pipeline from "./index";
+import Pipeline from "./index.js";
 
 export default class Escrow {
 

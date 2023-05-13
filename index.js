@@ -17,13 +17,13 @@ import {
   sendTxns,
 } from "./utils.js";
 import "regenerator-runtime";
-import PipeWallet from "./pwallet.js";
+//import PipeWallet from "./pwallet.js";
 import Escrow from "./escrow.js"
 //in order to solve undiagnosed "missing parenthetical" error, PeraWallet cannot be installed via there instructions. In order to integrate PeraWallet, prior to building Pipeline, in terminal run: cd connect && npm install
 import { PeraWalletConnect } from '@perawallet/connect'
 import encodeUint64 from "./encode64.js";
 
-export { PipeWallet, sendTxns, Escrow }
+export {  sendTxns, Escrow, /*PipeWallet*/}
 
 
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
@@ -178,12 +178,12 @@ export default class Pipeline {
           alert("AlgoSigner is NOT installed.");
         }
         break;
-      case "PipeWallet":
+       /*case "PipeWallet":
         PipeWallet.openWallet();
         break;
         case "escrow":
           Pipeline.address = Escrow.address
-          break;
+          break; */
       default:
         break;
     }
@@ -240,6 +240,7 @@ export default class Pipeline {
       }
       else {
         if (this.pipeConnector === "PipeWallet") {
+          /*
           PipeWallet.openWallet();
           PipeWallet.previewTxn(mytxnb);
           let approved = await PipeWallet.waitForApproval();
@@ -263,7 +264,7 @@ export default class Pipeline {
             }
           } else {
             return {};
-          }
+          }*/
         }
         else {
           if (this.pipeConnector === "escrow") {
@@ -862,7 +863,7 @@ export default class Pipeline {
 }
 
 window.pipeline = Pipeline
-window.PipeWallet = PipeWallet
+//window.PipeWallet = PipeWallet
 window.pipeEscrow = Escrow
 window.pipelineErrors = []
 /* usage

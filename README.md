@@ -34,7 +34,7 @@ npm install @pipeline-ui-2/pipeline
 ```
 Import the class into your project:
 ```javascript
-import Pipeline from "@pipeline-ui-2/pipeline";
+import Pipeline from "@pipeline-ui-2/pipeline/index";
 ```
 Initialize Pipeline:
 ```javascript
