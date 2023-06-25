@@ -609,7 +609,7 @@ export default class Pipeline {
     if (teal !== "") {
       let algodClient = configAlgosdk(this);
 
-      let clientb = await configClient(this.main, this.EnableDeveloperAPI);
+      let clientb = await configClient(this.main, this.EnableDeveloperAPI,this);
       let transServer = clientb.tranServer;
 
       let compiled = "";
@@ -729,7 +729,7 @@ export default class Pipeline {
     applications = undefined,
     boxes = undefined
   ) {
-    let clientb = await configClient(this.main, this.EnableDeveloperAPI);
+    let clientb = await configClient(this.main, this.EnableDeveloperAPI,this);
     let transServer = clientb.tranServer;
     let params = clientb.params;
 
