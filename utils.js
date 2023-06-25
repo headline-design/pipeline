@@ -7,12 +7,12 @@ async function configClient(main, api, ref) {
     let transServer = ''
 
     if (main) {
-        paramServer = 'https://node.algoexplorerapi.io/v2/transactions/params'
-        transServer = 'https://node.algoexplorerapi.io/v2/transactions'
+        paramServer = 'https://mainnet-api.algonode.cloud/v2/transactions/params'
+        transServer = 'https://mainnet-api.algonode.cloud/v2/transactions'
     }
     else {
-        paramServer = "https://node.testnet.algoexplorerapi.io/v2/transactions/params"
-        transServer = "https://node.testnet.algoexplorerapi.io/v2/transactions"
+        paramServer = "https://testnet-api.algonode.network/v2/transactions/params"
+        transServer = "https://testnet-api.algonode.network/v2/transactions"
     }
 
     if (api) {
@@ -60,10 +60,10 @@ function configIndexer(main, api, ref) {
     let indexerURL = ""
 
     if (main) {
-        indexerURL = "https://algoindexer.algoexplorerapi.io"
+        indexerURL = "https://mainnet-idx.algonode.cloud"
     }
     else {
-        indexerURL = "https://algoindexer.testnet.algoexplorerapi.io"
+        indexerURL = "https://testnet-idx.algonode.cloud"
     }
 
     if (api) { indexerURL = ref.indexer }
@@ -116,10 +116,10 @@ function configAlgosdk(ref) {
     }
     else {
         if (!ref.main) {
-            algodClient = new algosdk.Algodv2("", 'https://node.testnet.algoexplorerapi.io', '');
+            algodClient = new algosdk.Algodv2("", 'https://testnet-api.algonode.network', '');
         }
         else {
-            algodClient = new algosdk.Algodv2("", 'https://node.algoexplorerapi.io', '');
+            algodClient = new algosdk.Algodv2("", 'https://mainnet-api.algonode.cloud', '');
         }
     }
     return algodClient

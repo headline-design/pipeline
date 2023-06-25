@@ -7,23 +7,23 @@ async function getAppIndex(txn, net, ref) {
     let data = undefined
     let dataObj = undefined
     let id = undefined
-  
+
     let url = ""
 
     await sleep(15000)
-  
+
     if (ref.EnableDeveloperAPI) {
       url = ref.indexer
     }
     else {
       if (!net) {
-        url = "https://algoindexer.testnet.algoexplorerapi.io"
+        url = "https://testnet-idx.algonode.cloud"
       }
       else {
-        url = "https://algoindexer.algoexplorerapi.io"
+        url = "https://mainnet-idx.algonode.cloud"
       }
     }
-  
+
     data = await fetch(url + '/v2/transactions/' + txn)
     dataObj = await data.json()
     id = await dataObj.transaction["created-application-index"]
@@ -35,7 +35,7 @@ async function getAppIndex(txn, net, ref) {
   }
 
   async function readGlobalState(net,index,ref) {
-  
+
     let url = ""
 
     if (ref.EnableDeveloperAPI) {
@@ -43,10 +43,10 @@ async function getAppIndex(txn, net, ref) {
     }
     else {
       if (!net) {
-        url = "https://algoindexer.testnet.algoexplorerapi.io"
+        url = "https://testnet-idx.algonode.cloud"
       }
       else {
-        url = "https://algoindexer.algoexplorerapi.io"
+        url = "https://mainnet-idx.algonode.cloud"
       }
     }
 
@@ -60,23 +60,23 @@ async function getAppIndex(txn, net, ref) {
     let data = undefined
     let dataObj = undefined
     let id = undefined
-  
+
     let url = ""
 
     await sleep(15000)
-  
+
     if (ref.EnableDeveloperAPI) {
       url = ref.indexer
     }
     else {
       if (!net) {
-        url = "https://algoindexer.testnet.algoexplorerapi.io"
+        url = "https://testnet-idx.algonode.cloud"
       }
       else {
-        url = "https://algoindexer.algoexplorerapi.io"
+        url = "https://mainnet-idx.algonode.cloud"
       }
     }
-  
+
     data = await fetch(url + '/v2/transactions/' + txn)
     dataObj = await data.json()
     id = await dataObj.transaction["created-asset-index"]

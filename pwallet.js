@@ -97,7 +97,7 @@ function pipeModalScript() {
 }
 
 export default class PipeWallet {
-    
+
   static init() {
     this.history = false
     this.exportShow = false
@@ -215,10 +215,10 @@ export default class PipeWallet {
     if (Pipeline.address !== "") {
       let address = Pipeline.address;
       let url = Pipeline.main
-        ? "https://algoindexer.algoexplorerapi.io/v2/accounts/" +
+        ? "https://mainnet-idx.algonode.cloud/v2/accounts/" +
           address +
           "/transactions"
-        : "https://algoindexer.testnet.algoexplorerapi.io/v2/accounts/" +
+        : "https://testnet-idx.algonode.cloud/v2/accounts/" +
           address +
           "/transactions";
 
