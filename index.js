@@ -1,6 +1,8 @@
 import MyAlgo from "@randlabs/myalgo-connect";
-import WalletConnect from "@walletconnect/client";
-import QRCodeModal from "algorand-walletconnect-qrcode-modal";
+//import WalletConnect from "@walletconnect/client";
+//import { WalletConnectModalSign } from "@walletconnect/modal-sign-html";
+
+//import QRCodeModal from "algorand-walletconnect-qrcode-modal";
 import { formatJsonRpcRequest } from "@json-rpc-tools/utils";
 import createAsaTxn from "./createAsaTxn.js";
 import {
@@ -25,7 +27,6 @@ import encodeUint64 from "./encode64.js";
 
 export {  sendTxns, Escrow, /*PipeWallet*/}
 
-
 //Note: this class is a work in progress. May be unstable. Roll back to version 1.2.7 if issues encountered
 
 export default class Pipeline {
@@ -44,10 +45,27 @@ export default class Pipeline {
   static address = "";
   static txID = "";
   static myBalance = 0;
-  static connector = new WalletConnect({
+  /* static connector = new WalletConnect({
     bridge: "https://bridge.walletconnect.org", // Required
     qrcodeModal: QRCodeModal,
+  }); */
+
+  static wcId = "85663294acf9ea5f7b367dbf260038bc"
+
+  static connector = {}
+
+  /*
+
+  static connector = new WalletConnectModalSign({
+    projectId: Pipeline.wcId,
+    metadata: {
+      name: "My Dapp",
+      description: "My Dapp description",
+      url: "https://my-dapp.com",
+      icons: ["https://my-dapp.com/logo.png"],
+    },
   });
+  */
 
   static init = () => { return new MyAlgo } //backwards compatibility 
 
@@ -129,42 +147,12 @@ export default class Pipeline {
 
         break;
       case "WalletConnect":
-        this.connector.on("disconnect", (error, payload) => {
-          if (error) {
-            throw new Error(error);
-          }
 
-          // Delete connector
-          this.connector = new WalletConnect({
-            bridge: "https://bridge.walletconnect.org", // Required
-            qrcodeModal: QRCodeModal,
-          });
-        });
+        try {
+          alert("Wallet Connect no longer supported due to mind-blowing stupidity")
 
-        this.connector.on("session_update", (error, payload) => {
-          alert(error + payload);
-          if (error) {
-            throw new Error(error);
-          }
-          // Get updated accounts and chainId
-          const { accounts, chainId } = payload.params[0];
-          if (accounts.length > 0) {
-            this.address = accounts[0];
-          }
-          this.chainId = chainId;
-        });
-
-        const { accounts, chainId } = await this.connector.connect();
-        if (accounts.length > 0) {
-          this.address = accounts[0];
-        }
-
-        if (!this.connector.connected) {
-          await this.connector.createSession().then((data) => {
-            console.log(data);
-          });
-        } else if (this.connector.accounts.length > 0) {
-          this.address = this.connector.accounts[0];
+        } catch (err) {
+          alert(err);
         }
         break;
       case "AlgoSigner":
@@ -374,6 +362,9 @@ export default class Pipeline {
             console.log(requestParams);
 
             if (this.pipeConnector === "WalletConnect") {
+              alert("Wallet Connect no longer supported due to mind-blowing stupidity")
+              /*
+              
               let request = formatJsonRpcRequest("algo_signTxn", requestParams);
 
               //request.id = this.chainId
@@ -396,7 +387,7 @@ export default class Pipeline {
               } catch (error) {
                 console.log(error);
               }
-            } else {
+            */} else {
               try {
                 let result = await AlgoSigner.signTxn(requestParams);
 
