@@ -57760,7 +57760,7 @@ var Pipeline = /*#__PURE__*/function () {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
               _context3.t0 = this.pipeConnector;
-              _context3.next = _context3.t0 === "myAlgoWallet" ? 3 : _context3.t0 === "PeraWallet" ? 16 : _context3.t0 === "WalletConnect" ? 21 : _context3.t0 === "AlgoSigner" ? 23 : 34;
+              _context3.next = _context3.t0 === "myAlgoWallet" ? 3 : _context3.t0 === "PeraWallet" ? 16 : _context3.t0 === "WalletConnect" ? 21 : _context3.t0 === "AlgoSigner" ? 23 : _context3.t0 === "escrow" ? 34 : 36;
               break;
             case 3:
               _context3.prev = 3;
@@ -57778,7 +57778,7 @@ var Pipeline = /*#__PURE__*/function () {
               _context3.t1 = _context3["catch"](3);
               console.error(_context3.t1);
             case 15:
-              return _context3.abrupt("break", 35);
+              return _context3.abrupt("break", 37);
             case 16:
               _context3.next = 18;
               return this.PeraWallet.connect();
@@ -57806,14 +57806,14 @@ var Pipeline = /*#__PURE__*/function () {
                 })
                   this.address = newAccounts[0];
               }*/
-              return _context3.abrupt("break", 35);
+              return _context3.abrupt("break", 37);
             case 21:
               try {
                 alert("Wallet Connect no longer supported due to mind-blowing stupidity");
               } catch (err) {
                 alert(err);
               }
-              return _context3.abrupt("break", 35);
+              return _context3.abrupt("break", 37);
             case 23:
               if (!(typeof AlgoSigner !== "undefined")) {
                 _context3.next = 32;
@@ -57834,12 +57834,15 @@ var Pipeline = /*#__PURE__*/function () {
             case 32:
               alert("AlgoSigner is NOT installed.");
             case 33:
-              return _context3.abrupt("break", 35);
+              return _context3.abrupt("break", 37);
             case 34:
-              return _context3.abrupt("break", 35);
-            case 35:
-              return _context3.abrupt("return", this.address);
+              Pipeline.address = _escrow.default.address;
+              return _context3.abrupt("break", 37);
             case 36:
+              return _context3.abrupt("break", 37);
+            case 37:
+              return _context3.abrupt("return", this.address);
+            case 38:
             case "end":
               return _context3.stop();
           }
